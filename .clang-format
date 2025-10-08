@@ -1,0 +1,22 @@
+BasedOnStyle: llvm
+UseTab: Never
+IndentWidth: 3
+TabWidth: 3
+ConstructorInitializerIndentWidth: 3
+ContinuationIndentWidth: 3
+AccessModifierOffset: -3
+BreakBeforeBraces: Allman
+
+AllowAllArgumentsOnNextLine: true
+PointerAlignment: Left
+AllowShortIfStatementsOnASingleLine: false
+AlignTrailingComments: true
+SpacesBeforeTrailingComments: 3
+AlignConsecutiveMacros: Consecutive
+AlignAfterOpenBracket: DontAlign
+ColumnLimit: 100
+AllowShortLambdasOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+UseCRLF: false
+PenaltyBreakBeforeFirstCallParameter: 1000
+AlwaysBreakAfterDefinitionReturnType: None

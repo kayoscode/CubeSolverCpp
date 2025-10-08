@@ -12,9 +12,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SRC
         src/main.cpp
+        src/Cube.cpp
 )
 
-set(HEADERS)
+set(HEADERS
+        include/Cube.hpp
+)
 
 add_executable(${EXE_NAME} ${SRC} ${HEADERS})
 

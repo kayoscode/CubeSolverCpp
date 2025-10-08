@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/Users/bryce/Desktop/c/Cube solver/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/clang++ -I\"/Users/bryce/Desktop/c/Cube solver/include\" -g -std=c++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.5.sdk -fcolor-diagnostics -o CMakeFiles/cube-solver.dir/src/main.cpp.o -c \"/Users/bryce/Desktop/c/Cube solver/src/main.cpp\"",
-  "file": "/Users/bryce/Desktop/c/Cube solver/src/main.cpp",
-  "output": "CMakeFiles/cube-solver.dir/src/main.cpp.o"
-}
-]

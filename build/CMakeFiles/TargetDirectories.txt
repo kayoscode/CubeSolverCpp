@@ -1,4 +1,0 @@
-/Users/bryce/Desktop/c/Cube solver/build/CMakeFiles/cube-solver.dir
-/Users/bryce/Desktop/c/Cube solver/build/CMakeFiles/test.dir
-/Users/bryce/Desktop/c/Cube solver/build/CMakeFiles/edit_cache.dir
-/Users/bryce/Desktop/c/Cube solver/build/CMakeFiles/rebuild_cache.dir

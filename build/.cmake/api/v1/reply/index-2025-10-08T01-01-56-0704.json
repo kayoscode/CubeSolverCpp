@@ -1,0 +1,66 @@
+{
+	"cmake" : 
+	{
+		"generator" : 
+		{
+			"multiConfig" : false,
+			"name" : "Ninja"
+		},
+		"paths" : 
+		{
+			"cmake" : "/Applications/CMake.app/Contents/bin/cmake",
+			"cpack" : "/Applications/CMake.app/Contents/bin/cpack",
+			"ctest" : "/Applications/CMake.app/Contents/bin/ctest",
+			"root" : "/Applications/CMake.app/Contents/share/cmake-3.31"
+		},
+		"version" : 
+		{
+			"isDirty" : false,
+			"major" : 3,
+			"minor" : 31,
+			"patch" : 7,
+			"string" : "3.31.7",
+			"suffix" : ""
+		}
+	},
+	"objects" : 
+	[
+		{
+			"jsonFile" : "codemodel-v2-6c274ba54166a1988803.json",
+			"kind" : "codemodel",
+			"version" : 
+			{
+				"major" : 2,
+				"minor" : 7
+			}
+		}
+	],
+	"reply" : 
+	{
+		"client-sublimetext" : 
+		{
+			"query.json" : 
+			{
+				"requests" : 
+				[
+					{
+						"kind" : "codemodel",
+						"version" : 2
+					}
+				],
+				"responses" : 
+				[
+					{
+						"jsonFile" : "codemodel-v2-6c274ba54166a1988803.json",
+						"kind" : "codemodel",
+						"version" : 
+						{
+							"major" : 2,
+							"minor" : 7
+						}
+					}
+				]
+			}
+		}
+	}
+}

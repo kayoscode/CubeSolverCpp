@@ -1,0 +1,87 @@
+{
+	"settings": {
+		"cmake": {
+			"build_folder": "$folder/build",
+			"command_line_overrides":
+            {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+            },
+			"generator": "Ninja",
+			"env": {
+				"CC": "clang",
+				"CXX": "clang++",				
+			},
+		},
+		"clangd": {
+			"enabled": true,
+		},
+	},
+	"folders":
+	[
+		{
+			"path": ".",
+			"folder_exclude_patterns": [
+				".cache",
+				".vscode",
+				"lib",
+				"build"
+			],
+			"file_exclude_patterns": [
+				"*.sublime-workspace",
+				"*.sublime-project",
+				"keyrita-core-proj-stub"
+			],
+		}
+	],
+	"debugger_configurations":
+	[
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Launch",
+			"program": "${folder}/build/cube-solver",
+			"args": [],
+			"cwd": "${folder}"
+		},
+	],
+	"build_systems":
+	[
+		{
+			"config": "Debug",
+			"env":
+			{
+				"CC": "clang",
+				"CXX": "clang++"
+			},
+			"generator": "Ninja",
+			"name": "Debug",
+			"target": "cmake_build",
+			"variants":
+			[
+				{
+					"build_target": "cube-solver",
+					"name": "cube-solver"
+				},
+				{
+					"artifact": "cube-solver",
+					"build_target": "cube-solver",
+					"name": "Run: cube-solver",
+					"target": "cmake_run"
+				},
+				{
+					"artifact": "cube-solver",
+					"build_target": "cube-solver",
+					"debug": true,
+					"name": "Run under LLDB: cube-solver",
+					"target": "cmake_run"
+				},
+				{
+					"name": "ctest",
+					"target": "ctest_run"
+				}
+			],
+			"working_dir": "$folder/build"
+		}
+	],
+}

@@ -4,5 +4,6 @@
 
 int main()
 {
+   cube::Cube cube;
    return 0;
 }

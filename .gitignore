@@ -18,3 +18,6 @@ cmake-build-relwithdebinfo/
 cmake-build-debug-gcc
 cmake-build-release-gcc
 default.profraw
+.DS_Store
+cube-solver-proj.sublime-proj
+cube-solver-proj.sublime-workspace

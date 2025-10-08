@@ -19,9 +19,14 @@ set(HEADERS
         include/Cube.hpp
 )
 
+# External libs
+include(FetchDependencies.cmake)
+
 add_executable(${EXE_NAME} ${SRC} ${HEADERS})
+add_library(lib_${EXE_NAME} ${SRC} ${HEADERS})
 
 target_include_directories(${EXE_NAME} PUBLIC include)
+target_include_directories(lib_${EXE_NAME} PUBLIC include)
 
 # Add tests
-# add_subdirectory(tests)
+add_subdirectory(tests)

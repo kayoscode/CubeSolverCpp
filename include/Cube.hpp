@@ -3,7 +3,6 @@
 #include <array>
 #include <cassert>
 #include <cerrno>
-#include <type_traits>
 
 namespace cube
 {
@@ -229,6 +228,18 @@ public:
       // Return the color of the middle of the given face.
       return mCube[EnumToInt(face)][CubeDimsToIdx(CubeSize / 2, CubeSize / 2)];
    }
+
+   /**
+    * @brief      Prints the cube to the given stream in a user readable way.
+    * @return     String representation of the object.
+    */
+   void Print(std::ostream& outputStream);
+
+   /**
+    * @brief      Prints a single face to the output stream.
+    * @param      outputStream  The stream to write data to
+    */
+   void PrintFace(eCubeFace face, std::ostream& outputStream);
 
 private:
    CubeFaceData mCube;

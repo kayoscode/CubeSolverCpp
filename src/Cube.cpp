@@ -5,6 +5,11 @@
 
 namespace cube
 {
+[[nodiscard]] constexpr int InvertLayer(int layer)
+{
+   return CubeSize - layer - 1;
+}
+
 enum Coord
 {
    TopLeftCorner,
@@ -208,7 +213,7 @@ struct tLayerRotateXData
    {
       GetColData<TLayer>(FrontFace, FrontTop, FrontMiddle, FrontBottom);
       GetColData<TLayer>(TopFace, TopTop, TopMiddle, TopBottom);
-      GetColData<TLayer>(BackFace, BackTop, BackMiddle, BackBottom);
+      GetColData<InvertLayer(TLayer)>(BackFace, BackTop, BackMiddle, BackBottom);
       GetColData<TLayer>(BottomFace, BottomTop, BottomMiddle, BottomBottom);
    }
 
@@ -224,33 +229,30 @@ template <int TLayer>
 static void LayerRotateXClockwise(CubeFaceData& faceData)
 {
    tLayerRotateXData<TLayer> layerData(faceData);
-
    SetColData<TLayer, false>(layerData.FrontFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
    SetColData<TLayer, false>(layerData.TopFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
-   SetColData<TLayer, false>(layerData.BackFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
-   SetColData<TLayer, false>(layerData.BottomFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
+   SetColData<InvertLayer(TLayer), true>(layerData.BackFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
+   SetColData<TLayer, true>(layerData.BottomFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
 }
 
 template <int TLayer>
 static void LayerRotateXCounterClockwise(CubeFaceData& faceData)
 {
    tLayerRotateXData<TLayer> layerData(faceData);
-
    SetColData<TLayer, false>(layerData.FrontFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
    SetColData<TLayer, false>(layerData.TopFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
-   SetColData<TLayer, false>(layerData.BackFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
-   SetColData<TLayer, false>(layerData.BottomFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
+   SetColData<InvertLayer(TLayer), true>(layerData.BackFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
+   SetColData<TLayer, true>(layerData.BottomFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
 }
 
 template <int TLayer>
 static void LayerRotateXTwice(CubeFaceData& faceData)
 {
    tLayerRotateXData<TLayer> layerData(faceData);
-
    SetColData<TLayer, false>(layerData.FrontFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
    SetColData<TLayer, false>(layerData.TopFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
-   SetColData<TLayer, false>(layerData.BackFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
-   SetColData<TLayer, false>(layerData.BottomFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
+   SetColData<InvertLayer(TLayer), true>(layerData.BackFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
+   SetColData<TLayer, true>(layerData.BottomFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
 }
 
 static void ExecuteUp(CubeFaceData& cube)
@@ -304,21 +306,25 @@ static void ExecuteRightPrime(CubeFaceData& cube)
 static void ExecuteRight2(CubeFaceData& cube)
 {
    RotateFaceTwice(cube, eCubeFace::Right);
+   LayerRotateXTwice<2>(cube);
 }
 
 static void ExecuteLeft(CubeFaceData& cube)
 {
    RotateFaceClockwise(cube, eCubeFace::Left);
+   LayerRotateXCounterClockwise<0>(cube);
 }
 
 static void ExecuteLeftPrime(CubeFaceData& cube)
 {
    RotateFaceCounterClockwise(cube, eCubeFace::Left);
+   LayerRotateXClockwise<0>(cube);
 }
 
 static void ExecuteLeft2(CubeFaceData& cube)
 {
    RotateFaceTwice(cube, eCubeFace::Left);
+   LayerRotateXTwice<0>(cube);
 }
 
 static void ExecuteFront(CubeFaceData& cube)
@@ -659,13 +665,20 @@ void Cube::ExecuteMove(eCubeMove move)
 
 void Cube::PrintFace(eCubeFace faceToken, std::ostream& outputStream)
 {
-   static std::array<char, EnumToInt(eCubeColor::NumColors)> colorsCharMap{
-      'Y',
-      'W',
-      'R',
-      'O',
-      'G',
-      'B',
+   std::array<std::string, EnumToInt(eCubeColor::NumColors)> colorMap = 
+   {
+      // Yellow
+      "\033[48;2;255;255;51m  \033[0m",
+      // White
+      "\033\[48;2;230;230;230m  \033[0m",
+      // Red
+      "\033[48;2;230;15;0m  \033[0m",
+      // Orange
+      "\033[48;2;255;127;0m  \033[0m",
+      // Green
+      "\033[48;2;60;200;60m  \033[0m",
+      // Blue
+      "\033[48;2;51;51;255m  \033[0m",
    };
 
    SingleCubeFace& face = mCube[EnumToInt(faceToken)];
@@ -674,7 +687,7 @@ void Cube::PrintFace(eCubeFace faceToken, std::ostream& outputStream)
       for (int i = 0; i < CubeSize; i++)
       {
          eCubeColor color = face[CubeDimsToIdx(i, j)];
-         outputStream << colorsCharMap[EnumToInt(color)];
+         outputStream << colorMap[EnumToInt(color)];
       }
 
       outputStream << "\n";

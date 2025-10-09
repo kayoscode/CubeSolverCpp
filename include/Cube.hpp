@@ -79,9 +79,20 @@ enum class eCubeMove
    BackWide,
    BackWidePrime,
    BackWide2,
+   // Middle moves
+   Middle,
+   MiddlePrime,
+   Middle2,
+   Equator,
+   EquatorPrime,
+   Equator2,
+   Standing,
+   StandingPrime,
+   Standing2,
+   // Cube rotations.
    X,
    Y,
-   Z
+   Z,
 };
 
 using SingleCubeFace = std::array<eCubeColor, CubeSize * CubeSize>;

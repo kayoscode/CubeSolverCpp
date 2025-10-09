@@ -89,79 +89,266 @@ static void RotateFaceTwice(CubeFaceData& faceData, eCubeFace face)
    faceToRotate[BottomRightCorner] = topLeftCorner;
 }
 
+template <int TLayer>
+static void GetRowData(SingleCubeFace& face, eCubeColor& first, eCubeColor& second, eCubeColor& third)
+{
+   first = face[CubeDimsToIdx(0, TLayer)];
+   second = face[CubeDimsToIdx(1, TLayer)];
+   third = face[CubeDimsToIdx(2, TLayer)];
+}
+
+template <int TLayer, bool TReverse>
+static void SetRowData(SingleCubeFace& face, eCubeColor first, eCubeColor second, eCubeColor third)
+{
+   if constexpr (TReverse)
+   {
+      face[CubeDimsToIdx(0, TLayer)] = third;
+      face[CubeDimsToIdx(1, TLayer)] = second;
+      face[CubeDimsToIdx(2, TLayer)] = first; 
+   }
+   else
+   {
+      face[CubeDimsToIdx(0, TLayer)] = first;
+      face[CubeDimsToIdx(1, TLayer)] = second;
+      face[CubeDimsToIdx(2, TLayer)] = third; 
+   }
+}
+
+template <int TLayer>
+struct tLayerRotateYData
+{
+   // Load the necessary data for our operations.
+   tLayerRotateYData(CubeFaceData& faceData)
+   : FrontFace(faceData[EnumToInt(eCubeFace::Front)]),
+     LeftFace(faceData[EnumToInt(eCubeFace::Left)]),
+     BackFace(faceData[EnumToInt(eCubeFace::Back)]),
+     RightFace(faceData[EnumToInt(eCubeFace::Right)])
+   {
+      GetRowData<TLayer>(FrontFace, FrontLeft, FrontMiddle, FrontRight);
+      GetRowData<TLayer>(LeftFace, LeftLeft, LeftMiddle, LeftRight);
+      GetRowData<TLayer>(BackFace, BackLeft, BackMiddle, BackRight);
+      GetRowData<TLayer>(RightFace, RightLeft, RightMiddle, RightRight);
+   }
+
+   SingleCubeFace &FrontFace, &LeftFace, &BackFace, &RightFace;
+
+   eCubeColor FrontLeft, FrontMiddle, FrontRight;
+   eCubeColor LeftLeft, LeftMiddle, LeftRight;
+   eCubeColor BackLeft, BackMiddle, BackRight;
+   eCubeColor RightLeft, RightMiddle, RightRight;
+};
+
+template <int TLayer>
+static void LayerRotateYClockwise(CubeFaceData& faceData)
+{
+   tLayerRotateYData<TLayer> layerData(faceData);
+
+   SetRowData<TLayer, false>(layerData.FrontFace, layerData.RightLeft, layerData.RightMiddle, layerData.RightRight);
+   SetRowData<TLayer, false>(layerData.LeftFace, layerData.FrontLeft, layerData.FrontMiddle, layerData.FrontRight);
+   SetRowData<TLayer, false>(layerData.BackFace, layerData.LeftLeft, layerData.LeftMiddle, layerData.LeftRight);
+   SetRowData<TLayer, false>(layerData.RightFace, layerData.BackLeft, layerData.BackMiddle, layerData.BackRight);
+}
+
+template <int TLayer>
+static void LayerRotateYCounterClockwise(CubeFaceData& faceData)
+{
+   tLayerRotateYData<TLayer> layerData(faceData);
+
+   SetRowData<TLayer, false>(layerData.FrontFace, layerData.LeftLeft, layerData.LeftMiddle, layerData.LeftRight);
+   SetRowData<TLayer, false>(layerData.LeftFace, layerData.BackLeft, layerData.BackMiddle, layerData.BackRight);
+   SetRowData<TLayer, false>(layerData.BackFace, layerData.RightLeft, layerData.RightMiddle, layerData.RightRight);
+   SetRowData<TLayer, false>(layerData.RightFace, layerData.FrontLeft, layerData.FrontMiddle, layerData.FrontRight);
+}
+
+template <int TLayer>
+static void LayerRotateYTwice(CubeFaceData& faceData)
+{
+   tLayerRotateYData<TLayer> layerData(faceData);
+
+   SetRowData<TLayer, false>(layerData.FrontFace, layerData.BackLeft, layerData.BackMiddle, layerData.BackRight);
+   SetRowData<TLayer, false>(layerData.LeftFace, layerData.RightLeft, layerData.RightMiddle, layerData.RightRight);
+   SetRowData<TLayer, false>(layerData.BackFace, layerData.FrontLeft, layerData.FrontMiddle, layerData.FrontRight);
+   SetRowData<TLayer, false>(layerData.RightFace, layerData.LeftLeft, layerData.LeftMiddle, layerData.LeftRight);
+}
+
+template <int TLayer>
+static void GetColData(SingleCubeFace& face, eCubeColor& first, eCubeColor& second, eCubeColor& third)
+{
+   first = face[CubeDimsToIdx(TLayer, 0)];
+   second = face[CubeDimsToIdx(TLayer, 1)];
+   third = face[CubeDimsToIdx(TLayer, 2)];
+}
+
+template <int TLayer, bool TReverse>
+static void SetColData(SingleCubeFace& face, eCubeColor first, eCubeColor second, eCubeColor third)
+{
+   if constexpr (TReverse)
+   {
+      face[CubeDimsToIdx(TLayer, 0)] = third;
+      face[CubeDimsToIdx(TLayer, 1)] = second;
+      face[CubeDimsToIdx(TLayer, 2)] = first; 
+   }
+   else
+   {
+      face[CubeDimsToIdx(TLayer, 0)] = first;
+      face[CubeDimsToIdx(TLayer, 1)] = second;
+      face[CubeDimsToIdx(TLayer, 2)] = third; 
+   }
+}
+
+template <int TLayer>
+struct tLayerRotateXData
+{
+   // Load the necessary data for our operations.
+   tLayerRotateXData(CubeFaceData& faceData)
+   : FrontFace(faceData[EnumToInt(eCubeFace::Front)]),
+     TopFace(faceData[EnumToInt(eCubeFace::Top)]),
+     BackFace(faceData[EnumToInt(eCubeFace::Back)]),
+     BottomFace(faceData[EnumToInt(eCubeFace::Bottom)])
+   {
+      GetColData<TLayer>(FrontFace, FrontTop, FrontMiddle, FrontBottom);
+      GetColData<TLayer>(TopFace, TopTop, TopMiddle, TopBottom);
+      GetColData<TLayer>(BackFace, BackTop, BackMiddle, BackBottom);
+      GetColData<TLayer>(BottomFace, BottomTop, BottomMiddle, BottomBottom);
+   }
+
+   SingleCubeFace &FrontFace, &TopFace, &BackFace, &BottomFace;
+
+   eCubeColor FrontTop, FrontMiddle, FrontBottom;
+   eCubeColor TopTop, TopMiddle, TopBottom;
+   eCubeColor BackTop, BackMiddle, BackBottom;
+   eCubeColor BottomTop, BottomMiddle, BottomBottom;
+};
+
+template <int TLayer>
+static void LayerRotateXClockwise(CubeFaceData& faceData)
+{
+   tLayerRotateXData<TLayer> layerData(faceData);
+
+   SetColData<TLayer, false>(layerData.FrontFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
+   SetColData<TLayer, false>(layerData.TopFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
+   SetColData<TLayer, false>(layerData.BackFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
+   SetColData<TLayer, false>(layerData.BottomFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
+}
+
+template <int TLayer>
+static void LayerRotateXCounterClockwise(CubeFaceData& faceData)
+{
+   tLayerRotateXData<TLayer> layerData(faceData);
+
+   SetColData<TLayer, false>(layerData.FrontFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
+   SetColData<TLayer, false>(layerData.TopFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
+   SetColData<TLayer, false>(layerData.BackFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
+   SetColData<TLayer, false>(layerData.BottomFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
+}
+
+template <int TLayer>
+static void LayerRotateXTwice(CubeFaceData& faceData)
+{
+   tLayerRotateXData<TLayer> layerData(faceData);
+
+   SetColData<TLayer, false>(layerData.FrontFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
+   SetColData<TLayer, false>(layerData.TopFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
+   SetColData<TLayer, false>(layerData.BackFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
+   SetColData<TLayer, false>(layerData.BottomFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
+}
+
 static void ExecuteUp(CubeFaceData& cube)
 {
    RotateFaceClockwise(cube, eCubeFace::Top);
+   LayerRotateYClockwise<0>(cube);
 }
 
 static void ExecuteUpPrime(CubeFaceData& cube)
 {
    RotateFaceCounterClockwise(cube, eCubeFace::Top);
+   LayerRotateYCounterClockwise<0>(cube);
 }
 
 static void ExecuteUp2(CubeFaceData& cube)
 {
    RotateFaceTwice(cube, eCubeFace::Top);
+   LayerRotateYTwice<0>(cube);
 }
 
 static void ExecuteDown(CubeFaceData& cube)
 {
+   RotateFaceClockwise(cube, eCubeFace::Bottom);
+   LayerRotateYCounterClockwise<2>(cube);
 }
 
 static void ExecuteDownPrime(CubeFaceData& cube)
 {
+   RotateFaceCounterClockwise(cube, eCubeFace::Bottom);
+   LayerRotateYClockwise<2>(cube);
 }
 
 static void ExecuteDown2(CubeFaceData& cube)
 {
+   RotateFaceTwice(cube, eCubeFace::Bottom);
+   LayerRotateYTwice<2>(cube);
 }
 
 static void ExecuteRight(CubeFaceData& cube)
 {
+   RotateFaceClockwise(cube, eCubeFace::Right);
+   LayerRotateXClockwise<2>(cube);
 }
 
 static void ExecuteRightPrime(CubeFaceData& cube)
 {
+   RotateFaceCounterClockwise(cube, eCubeFace::Right);
+   LayerRotateXCounterClockwise<2>(cube);
 }
 
 static void ExecuteRight2(CubeFaceData& cube)
 {
+   RotateFaceTwice(cube, eCubeFace::Right);
 }
 
 static void ExecuteLeft(CubeFaceData& cube)
 {
+   RotateFaceClockwise(cube, eCubeFace::Left);
 }
 
 static void ExecuteLeftPrime(CubeFaceData& cube)
 {
+   RotateFaceCounterClockwise(cube, eCubeFace::Left);
 }
 
 static void ExecuteLeft2(CubeFaceData& cube)
 {
+   RotateFaceTwice(cube, eCubeFace::Left);
 }
 
 static void ExecuteFront(CubeFaceData& cube)
 {
+   RotateFaceClockwise(cube, eCubeFace::Front);
 }
 
 static void ExecuteFrontPrime(CubeFaceData& cube)
 {
+   RotateFaceCounterClockwise(cube, eCubeFace::Front);
 }
 
 static void ExecuteFront2(CubeFaceData& cube)
 {
+   RotateFaceTwice(cube, eCubeFace::Front);
 }
 
 static void ExecuteBack(CubeFaceData& cube)
 {
+   RotateFaceClockwise(cube, eCubeFace::Back);
 }
 
 static void ExecuteBackPrime(CubeFaceData& cube)
 {
+   RotateFaceCounterClockwise(cube, eCubeFace::Back);
 }
 
 static void ExecuteBack2(CubeFaceData& cube)
 {
+   RotateFaceTwice(cube, eCubeFace::Back);
 }
 
 static void ExecuteUpWide(CubeFaceData& cube)
@@ -233,6 +420,45 @@ static void ExecuteBackWidePrime(CubeFaceData& cube)
 }
 
 static void ExecuteBackWide2(CubeFaceData& cube)
+{
+}
+
+static void ExecuteMiddle(CubeFaceData& cube)
+{
+}
+
+static void ExecuteMiddlePrime(CubeFaceData& cube)
+{
+}
+
+static void ExecuteMiddle2(CubeFaceData& cube)
+{
+}
+
+static void ExecuteEquator(CubeFaceData& cube)
+{
+   LayerRotateYCounterClockwise<1>(cube);
+}
+
+static void ExecuteEquatorPrime(CubeFaceData& cube)
+{
+   LayerRotateYClockwise<1>(cube);
+}
+
+static void ExecuteEquator2(CubeFaceData& cube)
+{
+   LayerRotateYTwice<1>(cube);
+}
+
+static void ExecuteStanding(CubeFaceData& cube)
+{
+}
+
+static void ExecuteStandingPrime(CubeFaceData& cube)
+{
+}
+
+static void ExecuteStanding2(CubeFaceData& cube)
 {
 }
 
@@ -391,6 +617,33 @@ void Cube::ExecuteMove(eCubeMove move)
       break;
    case eCubeMove::BackWide2:
       ExecuteBackWide2(mCube);
+      break;
+   case eCubeMove::Middle:
+      ExecuteMiddle(mCube);
+      break;
+   case eCubeMove::MiddlePrime:
+      ExecuteMiddlePrime(mCube);
+      break;
+   case eCubeMove::Middle2:
+      ExecuteMiddle2(mCube);
+      break;
+   case eCubeMove::Equator:
+      ExecuteEquator(mCube);
+      break;
+   case eCubeMove::EquatorPrime:
+      ExecuteEquatorPrime(mCube);
+      break;
+   case eCubeMove::Equator2:
+      ExecuteEquator2(mCube);
+      break;
+   case eCubeMove::Standing:
+      ExecuteStanding(mCube);
+      break;
+   case eCubeMove::StandingPrime:
+      ExecuteStandingPrime(mCube);
+      break;
+   case eCubeMove::Standing2:
+      ExecuteStanding2(mCube);
       break;
    case eCubeMove::X:
       ExecuteX(mCube);

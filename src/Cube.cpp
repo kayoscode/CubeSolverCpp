@@ -5,283 +5,88 @@
 
 namespace cube
 {
-enum class eFaceRow
+enum Coord
 {
-   Upper,
+   TopLeftCorner,
+   TopEdge,
+   TopRightCorner,
+   LeftEdge,
    Middle,
-   Lower
+   RightEdge,
+   BottomLeftCorner,
+   BottomEdge,
+   BottomRightCorner,
+   NumCoords
 };
-
-enum class eFaceCol
-{
-   Left,
-   Middle,
-   Right
-};
-
-/**
- * @brief      Returns the data in the row going left to right.
- *
- * @param      face    The face
- * @param[in]  row     The row
- * @param      first   The first
- * @param      second  The second
- * @param      third   The third
- */
-template <eFaceRow TRow, bool TReverse>
-inline static void GetRowData(
-   SingleCubeFace& face, eCubeColor& first, eCubeColor& second, eCubeColor& third)
-{
-   constexpr int row = EnumToInt(TRow);
-   if constexpr (!TReverse)
-   {
-      first = face[CubeDimsToIdx(0, row)];
-      second = face[CubeDimsToIdx(1, row)];
-      third = face[CubeDimsToIdx(2, row)];
-   }
-   else
-   {
-      first = face[CubeDimsToIdx(2, row)];
-      second = face[CubeDimsToIdx(1, row)];
-      third = face[CubeDimsToIdx(0, row)];
-   }
-}
-
-/**
- * @brief      Sets the data in the row from left to right.
- *
- * @param      face    The face
- * @param[in]  row     The row
- * @param      first   The first
- * @param      second  The second
- * @param      third   The third
- */
-template <eFaceRow TRow, bool TReverse>
-inline static void SetRowData(
-   SingleCubeFace& face, eCubeColor first, eCubeColor second, eCubeColor third)
-{
-   constexpr int row = EnumToInt(TRow);
-
-   if constexpr (!TReverse)
-   {
-      face[CubeDimsToIdx(0, row)] = first;
-      face[CubeDimsToIdx(1, row)] = second;
-      face[CubeDimsToIdx(2, row)] = third;
-   }
-   else
-   {
-      face[CubeDimsToIdx(2, row)] = first;
-      face[CubeDimsToIdx(1, row)] = second;
-      face[CubeDimsToIdx(0, row)] = third;
-   }
-}
-
-template <eFaceRow TSrcRow, eFaceRow TDestRow, bool TReverse>
-   requires(TSrcRow != TDestRow)
-inline static void CopyRowToRow(SingleCubeFace& face)
-{
-   constexpr int srcRow = EnumToInt(TSrcRow);
-   constexpr int destRow = EnumToInt(TDestRow);
-
-   if constexpr (!TReverse)
-   {
-      face[CubeDimsToIdx(0, destRow)] = face[CubeDimsToIdx(0, srcRow)];
-      face[CubeDimsToIdx(1, destRow)] = face[CubeDimsToIdx(1, srcRow)];
-      face[CubeDimsToIdx(2, destRow)] = face[CubeDimsToIdx(2, srcRow)];
-   }
-   else
-   {
-      face[CubeDimsToIdx(0, destRow)] = face[CubeDimsToIdx(2, srcRow)];
-      face[CubeDimsToIdx(1, destRow)] = face[CubeDimsToIdx(1, srcRow)];
-      face[CubeDimsToIdx(2, destRow)] = face[CubeDimsToIdx(0, srcRow)];
-   }
-}
-
-template <eFaceRow TFirstRow, eFaceRow TSecondRow>
-   requires(TFirstRow != TSecondRow)
-inline static void SwapRows(SingleCubeFace& face)
-{
-   constexpr int firstRow = EnumToInt(TFirstRow);
-
-   eCubeColor firstTemp = face[CubeDimsToIdx(0, firstRow)];
-   eCubeColor secondTemp = face[CubeDimsToIdx(1, firstRow)];
-   eCubeColor thirdTemp = face[CubeDimsToIdx(2, firstRow)];
-
-   // First copy the second row to the first, then set the second to the temp
-   CopyRowToRow<TSecondRow, TFirstRow, false>(face);
-   SetRowData<TFirstRow, false>(face, firstTemp, secondTemp, thirdTemp);
-}
-
-template <eFaceRow TSrcRow, eFaceCol TDestCol, bool TReverse>
-inline static void CopyRowToCol(SingleCubeFace& face)
-{
-   constexpr int srcRow = EnumToInt(TSrcRow);
-   constexpr int destCol = EnumToInt(TDestCol);
-   if constexpr (!TReverse)
-   {
-      face[CubeDimsToIdx(destCol, 0)] = face[CubeDimsToIdx(0, srcRow)];
-      face[CubeDimsToIdx(destCol, 1)] = face[CubeDimsToIdx(1, srcRow)];
-      face[CubeDimsToIdx(destCol, 2)] = face[CubeDimsToIdx(2, srcRow)];
-   }
-   else
-   {
-      face[CubeDimsToIdx(destCol, 0)] = face[CubeDimsToIdx(2, srcRow)];
-      face[CubeDimsToIdx(destCol, 1)] = face[CubeDimsToIdx(1, srcRow)];
-      face[CubeDimsToIdx(destCol, 2)] = face[CubeDimsToIdx(0, srcRow)];
-   }
-}
-
-/**
- * @brief      Returns the data in the col going from top to bottom.
- *
- * @param      face    The face
- * @param      first   The first
- * @param      second  The second
- * @param      third   The third
- *
- * @tparam     TCol    { description }
- */
-template <eFaceCol TCol, bool TReverse>
-static void GetColData(
-   SingleCubeFace& face, eCubeColor& first, eCubeColor& second, eCubeColor& third)
-{
-   constexpr int col = EnumToInt(TCol);
-
-   if constexpr (!TReverse)
-   {
-      first = face[CubeDimsToIdx(col, 0)];
-      second = face[CubeDimsToIdx(col, 1)];
-      third = face[CubeDimsToIdx(col, 2)];
-   }
-   else
-   {
-      first = face[CubeDimsToIdx(col, 2)];
-      second = face[CubeDimsToIdx(col, 1)];
-      third = face[CubeDimsToIdx(col, 0)];
-   }
-}
-
-/**
- * @brief      Returns the data in the col going from top to bottom.
- *
- * @param      face    The face
- * @param      first   The first
- * @param      second  The second
- * @param      third   The third
- *
- * @tparam     TCol    { description }
- */
-template <eFaceCol TCol, bool TReverse>
-static void SetColData(SingleCubeFace& face, eCubeColor first, eCubeColor second, eCubeColor third)
-{
-   constexpr int col = EnumToInt(TCol);
-
-   if constexpr (!TReverse)
-   {
-      face[CubeDimsToIdx(col, 0)] = first;
-      face[CubeDimsToIdx(col, 1)] = second;
-      face[CubeDimsToIdx(col, 2)] = third;
-   }
-   else
-   {
-      face[CubeDimsToIdx(col, 2)] = first;
-      face[CubeDimsToIdx(col, 1)] = second;
-      face[CubeDimsToIdx(col, 0)] = third;
-   }
-}
-
-template <eFaceCol TSrcCol, eFaceCol TDestCol, bool TReverse>
-   requires(TSrcCol != TDestCol)
-inline static void CopyColToCol(SingleCubeFace& face)
-{
-   constexpr int srcCol = EnumToInt(TSrcCol);
-   constexpr int destCol = EnumToInt(TDestCol);
-
-   if constexpr (!TReverse)
-   {
-      face[CubeDimsToIdx(destCol, 0)] = face[CubeDimsToIdx(srcCol, 0)];
-      face[CubeDimsToIdx(destCol, 1)] = face[CubeDimsToIdx(srcCol, 1)];
-      face[CubeDimsToIdx(destCol, 2)] = face[CubeDimsToIdx(srcCol, 2)];
-   }
-   else
-   {
-      face[CubeDimsToIdx(destCol, 0)] = face[CubeDimsToIdx(srcCol, 2)];
-      face[CubeDimsToIdx(destCol, 1)] = face[CubeDimsToIdx(srcCol, 1)];
-      face[CubeDimsToIdx(destCol, 2)] = face[CubeDimsToIdx(srcCol, 0)];
-   }
-}
-
-template <eFaceCol TSrcCol, eFaceRow TDestRow, bool TReverse>
-inline static void CopyColToRow(SingleCubeFace& face)
-{
-   constexpr int srcCol = EnumToInt(TSrcCol);
-   constexpr int destRow = EnumToInt(TDestRow);
-
-   if constexpr (!TReverse)
-   {
-      face[CubeDimsToIdx(0, destRow)] = face[CubeDimsToIdx(srcCol, 0)];
-      face[CubeDimsToIdx(1, destRow)] = face[CubeDimsToIdx(srcCol, 1)];
-      face[CubeDimsToIdx(2, destRow)] = face[CubeDimsToIdx(srcCol, 2)];
-   }
-   else
-   {
-      face[CubeDimsToIdx(0, destRow)] = face[CubeDimsToIdx(srcCol, 2)];
-      face[CubeDimsToIdx(1, destRow)] = face[CubeDimsToIdx(srcCol, 1)];
-      face[CubeDimsToIdx(2, destRow)] = face[CubeDimsToIdx(srcCol, 0)];
-   }
-}
-
-template <eFaceCol TFirstCol, eFaceCol TSecondCol>
-   requires(TFirstCol != TSecondCol)
-inline static void SwapCols(SingleCubeFace& face)
-{
-   constexpr int firstCol = EnumToInt(TFirstCol);
-
-   eCubeColor firstTemp = face[CubeDimsToIdx(0, firstCol)];
-   eCubeColor secondTemp = face[CubeDimsToIdx(1, firstCol)];
-   eCubeColor thirdTemp = face[CubeDimsToIdx(2, firstCol)];
-
-   // First copy the second row to the first, then set the second to the temp
-   CopyColToCol<TSecondCol, TFirstCol, false>(face);
-   SetColData<TFirstCol, false>(face, firstTemp, secondTemp, thirdTemp);
-}
 
 static void RotateFaceClockwise(CubeFaceData& faceData, eCubeFace face)
 {
    SingleCubeFace& faceToRotate = faceData[EnumToInt(face)];
 
-   // Preserve the data from the top row since we need it later
-   eCubeColor upperLeftCorner, upperMiddleEdge, upperRightCorner;
-   GetRowData<eFaceRow::Upper, false>(
-      faceToRotate, upperLeftCorner, upperMiddleEdge, upperRightCorner);
+   eCubeColor topLeftCorner = faceToRotate[TopLeftCorner];
+   eCubeColor topEdge = faceToRotate[TopEdge];
+   eCubeColor topRightCorner = faceToRotate[TopRightCorner];
+   eCubeColor leftEdge = faceToRotate[LeftEdge];
+   eCubeColor rightEdge = faceToRotate[RightEdge];
+   eCubeColor bottomLeftCorner = faceToRotate[BottomLeftCorner];
+   eCubeColor bottomEdge = faceToRotate[BottomEdge];
+   eCubeColor bottomRightCorner = faceToRotate[BottomRightCorner];
 
-   CopyColToRow<eFaceCol::Left, eFaceRow::Upper, true>(faceToRotate);
-   CopyRowToCol<eFaceRow::Lower, eFaceCol::Left, false>(faceToRotate);
-   CopyColToRow<eFaceCol::Right, eFaceRow::Lower, true>(faceToRotate);
-   SetColData<eFaceCol::Right, false>(
-      faceToRotate, upperLeftCorner, upperMiddleEdge, upperRightCorner);
+   faceToRotate[TopLeftCorner] = bottomLeftCorner;
+   faceToRotate[TopEdge] = leftEdge;
+   faceToRotate[TopRightCorner] = topLeftCorner;
+   faceToRotate[LeftEdge] = bottomEdge;
+   faceToRotate[RightEdge] = topEdge;
+   faceToRotate[BottomLeftCorner] = bottomRightCorner;
+   faceToRotate[BottomEdge] = rightEdge;
+   faceToRotate[BottomRightCorner] = topRightCorner;
 }
 
 static void RotateFaceCounterClockwise(CubeFaceData& faceData, eCubeFace face)
 {
+
    SingleCubeFace& faceToRotate = faceData[EnumToInt(face)];
 
-   // Preserve the data from the top row since we need it later
-   eCubeColor upperLeftCorner, upperMiddleEdge, upperRightCorner;
-   GetRowData<eFaceRow::Upper, false>(
-      faceToRotate, upperLeftCorner, upperMiddleEdge, upperRightCorner);
+   eCubeColor topLeftCorner = faceToRotate[TopLeftCorner];
+   eCubeColor topEdge = faceToRotate[TopEdge];
+   eCubeColor topRightCorner = faceToRotate[TopRightCorner];
+   eCubeColor leftEdge = faceToRotate[LeftEdge];
+   eCubeColor rightEdge = faceToRotate[RightEdge];
+   eCubeColor bottomLeftCorner = faceToRotate[BottomLeftCorner];
+   eCubeColor bottomEdge = faceToRotate[BottomEdge];
+   eCubeColor bottomRightCorner = faceToRotate[BottomRightCorner];
 
-   CopyColToRow<eFaceCol::Right, eFaceRow::Upper, false>(faceToRotate);
-   CopyRowToCol<eFaceRow::Lower, eFaceCol::Right, true>(faceToRotate);
-   CopyColToRow<eFaceCol::Left, eFaceRow::Lower, false>(faceToRotate);
-   SetColData<eFaceCol::Left, true>(faceToRotate, upperLeftCorner, upperMiddleEdge, upperRightCorner);
+   faceToRotate[TopLeftCorner] = topRightCorner;
+   faceToRotate[TopEdge] = rightEdge;
+   faceToRotate[TopRightCorner] = bottomRightCorner;
+   faceToRotate[LeftEdge] = topEdge;
+   faceToRotate[RightEdge] = bottomEdge;
+   faceToRotate[BottomLeftCorner] = topLeftCorner;
+   faceToRotate[BottomEdge] = leftEdge;
+   faceToRotate[BottomRightCorner] = bottomLeftCorner;
 }
 
 static void RotateFaceTwice(CubeFaceData& faceData, eCubeFace face)
 {
    SingleCubeFace& faceToRotate = faceData[EnumToInt(face)];
-   SwapCols<eFaceCol::Left, eFaceCol::Right>(faceToRotate);
-   SwapRows<eFaceRow::Upper, eFaceRow::Lower>(faceToRotate);
+
+   eCubeColor topLeftCorner = faceToRotate[TopLeftCorner];
+   eCubeColor topEdge = faceToRotate[TopEdge];
+   eCubeColor topRightCorner = faceToRotate[TopRightCorner];
+   eCubeColor leftEdge = faceToRotate[LeftEdge];
+   eCubeColor rightEdge = faceToRotate[RightEdge];
+   eCubeColor bottomLeftCorner = faceToRotate[BottomLeftCorner];
+   eCubeColor bottomEdge = faceToRotate[BottomEdge];
+   eCubeColor bottomRightCorner = faceToRotate[BottomRightCorner];
+
+   faceToRotate[TopLeftCorner] = bottomRightCorner;
+   faceToRotate[TopEdge] = bottomEdge;
+   faceToRotate[TopRightCorner] = bottomLeftCorner;
+   faceToRotate[LeftEdge] = rightEdge;
+   faceToRotate[RightEdge] = leftEdge;
+   faceToRotate[BottomLeftCorner] = topRightCorner;
+   faceToRotate[BottomEdge] = topEdge;
+   faceToRotate[BottomRightCorner] = topLeftCorner;
 }
 
 static void ExecuteUp(CubeFaceData& cube)

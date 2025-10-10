@@ -200,7 +200,7 @@ public:
     *
     * @return     The cube face.
     */
-   [[nodiscard]] constexpr eCubeFace DefaultFaceOfColor(eCubeColor color)
+   [[nodiscard]] static constexpr eCubeFace DefaultFaceOfColor(eCubeColor color)
    {
       return static_cast<eCubeFace>(color);
    }
@@ -213,7 +213,7 @@ public:
     *
     * @return     The e cube color.
     */
-   [[nodiscard]] constexpr eCubeColor DefaultColorOfFace(eCubeFace face)
+   [[nodiscard]] static constexpr eCubeColor DefaultColorOfFace(eCubeFace face)
    {
       return static_cast<eCubeColor>(face);
    }

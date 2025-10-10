@@ -91,8 +91,14 @@ enum class eCubeMove
    Standing2,
    // Cube rotations.
    X,
+   XPrime,
+   X2,
    Y,
+   YPrime,
+   Y2,
    Z,
+   ZPrime,
+   Z2,
 };
 
 using SingleCubeFace = std::array<eCubeColor, CubeSize * CubeSize>;

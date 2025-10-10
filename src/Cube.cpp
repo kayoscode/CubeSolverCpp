@@ -639,6 +639,7 @@ static void ExecuteZ2(CubeFaceData& cube)
 }
 
 Cube::Cube()
+: mStaticConstructor()
 {
    static_assert(
       EnumToInt(eCubeColor::Yellow) == EnumToInt(eCubeFace::Top), "Incorrect cube config.");
@@ -704,12 +705,11 @@ bool Cube::Validate()
    return true;
 }
 
-void Cube::ExecuteMoves(eCubeMove* moves, int numMoves)
+void Cube::ExecuteMoves(eCubeMove* moves, size_t numMoves)
 {
-   for (int i = 0; i < numMoves; i++)
+   for (size_t i = 0; i < numMoves; i++)
    {
       ExecuteMove(moves[i]);
-      //Print(std::cout);
    }
 }
 
@@ -969,7 +969,7 @@ void Cube::Print(std::ostream& outputStream, bool useColor)
    outputStream << "Front     Top       Left      Right     Bottom    Back      \n";
 }
 
-static std::map<std::string, eCubeMove> moveMap
+static std::map<std::string, eCubeMove> NotationToMoveMap
 {
    // Standard
    { "U", eCubeMove::Up },
@@ -1060,19 +1060,34 @@ static std::map<std::string, eCubeMove> moveMap
    { "S2", eCubeMove::Standing2 },
 };
 
-static std::unordered_set<char> validChars = {
-   'U', 'D', 'R', 'L', 'F', 'B',
-   'u', 'd', 'r', 'l', 'f', 'b',
-   '\'', '2',
-   'w',
-   'x', 'y', 'z',
-   'M', 'E', 'S'
-};
+std::map<eCubeMove, std::string> MoveToNotationMap;
+static std::unordered_set<char> ValidChars;
+
+Cube::CubeStaticConstructor::CubeStaticConstructor()
+{
+   // Init valid chars set and setup the default notations.
+   for (auto kvp : NotationToMoveMap)
+   {
+      for (int i = 0; i < kvp.first.size(); i++)
+      {
+         if (!ValidChars.contains(kvp.first[i]))
+         {
+            ValidChars.emplace(kvp.first[i]);
+         }
+      }
+
+      // Now set the mapping to notation if it's not already set.
+      if (!MoveToNotationMap.contains(kvp.second))
+      {
+         MoveToNotationMap.emplace(kvp.second, kvp.first);
+      }
+   }
+}
 
 static bool AddMove(const std::string& currentToken, std::vector<eCubeMove>& moves)
 {
-   auto moveToken = moveMap.find(currentToken);
-   if (moveToken != moveMap.end())
+   auto moveToken = NotationToMoveMap.find(currentToken);
+   if (moveToken != NotationToMoveMap.end())
    {
       moves.push_back(moveToken->second);
       return true;
@@ -1086,7 +1101,7 @@ void Cube::ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeM
    std::string currentToken;
    for (int i = 0; i < moveNotation.size(); i++)
    {
-      if (validChars.contains(moveNotation[i]))
+      if (ValidChars.contains(moveNotation[i]))
       {
          currentToken += moveNotation[i];
       }
@@ -1110,6 +1125,36 @@ void Cube::ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeM
       {
          std::cout << "Invalid move in string: " << currentToken << "\n";
       }
+   }
+}
+
+void Cube::SerializeMoveList(std::ostream& outputStream, eCubeMove *moves, size_t numMoves, bool includeSeparators)
+{
+   constexpr int separatorDist = 5;
+   int separatorIdx = 0;
+
+   for (size_t i = 0; i < numMoves; i++)
+   {
+      // Add the separator if necessary
+      if (separatorIdx >= separatorDist)
+      {
+         separatorIdx = 0;
+         outputStream << "- ";
+      }
+
+      auto move = MoveToNotationMap.find(moves[i]);
+
+      if (move != MoveToNotationMap.end())
+      {
+         outputStream << move->second << " ";
+      }
+      else 
+      {
+         // Error case.
+         outputStream << "?? ";
+      }
+
+      separatorIdx++;
    }
 }
 

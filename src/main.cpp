@@ -9,10 +9,12 @@ int main()
 {
    Cube cube;
    std::vector<eCubeMove> moves;
-   Cube::ParseMoveNotation("",
+   Cube::ParseMoveNotation("R U2 R' r rW L x U2 D",
       moves);
 
    cube.ExecuteMoves(moves.data(), moves.size());
    cube.Print(std::cout);
+
+   Cube::SerializeMoveList(std::cout, moves.data(), moves.size(), true);
    return 0;
 }

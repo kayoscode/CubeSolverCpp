@@ -104,11 +104,9 @@ enum class eCubeMove
 };
 
 using SingleCubeFace = std::array<eCubeColor, CubeSize * CubeSize>;
-using CubeFaceData =
-   std::array<SingleCubeFace, static_cast<int>(eCubeFace::NumFaces)>;
+using CubeFaceData = std::array<SingleCubeFace, static_cast<int>(eCubeFace::NumFaces)>;
 
-template <typename T>
-[[nodiscard]] constexpr int EnumToInt(T token)
+template <typename T> [[nodiscard]] constexpr int EnumToInt(T token)
 {
    return static_cast<int>(token);
 }
@@ -154,7 +152,7 @@ public:
     * @param      move      The move
     * @param[in]  numMoves  The number moves
     */
-   void ExecuteMoves(eCubeMove* move, int numMoves);
+   void ExecuteMoves(eCubeMove* move, size_t numMoves);
 
    /**
     * @brief      Solves the cube using the CFOP method.
@@ -268,6 +266,15 @@ public:
    void PrintFace(eCubeFace face, std::ostream& outputStream, bool useColor = true);
 
    /**
+    * @brief      Converts the list of moves to a human readable string.
+    *
+    * @param      outputStream  The stream to write data to
+    * @param      moves         The moves
+    */
+   static void SerializeMoveList(
+      std::ostream& outputStream, eCubeMove* moves, size_t numMoves, bool includeSeparators = false);
+
+   /**
     * @brief      Creates a list of moves given a string of move notation.
     *
     * @param[in]  moveNotation  The move notation
@@ -276,14 +283,23 @@ public:
    static void ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeMove>& moves);
 
    /**
-    * @brief      Takes in a list of moves and produces the reverse of those moves. 
+    * @brief      Takes in a list of moves and produces the reverse of those moves.
     *
     * @param[in]  moves         The moves
     * @param      reverseMoves  The reverse moves
     */
-   static void ReverseMoves(const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves);
+   static void ReverseMoves(
+      const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves);
 
 private:
    CubeFaceData mCube;
+
+   class CubeStaticConstructor
+   {
+   public:
+      CubeStaticConstructor();
+   };
+   // We need this static constructor to init some memory in static space in a thread safe manner.
+   CubeStaticConstructor mStaticConstructor;
 };
 }   // namespace cube

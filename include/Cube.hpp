@@ -100,6 +100,7 @@ enum class eCubeMove
    Z,
    ZPrime,
    Z2,
+   NumMoves
 };
 
 using SingleCubeFace = std::array<eCubeColor, CubeSize * CubeSize>;
@@ -131,7 +132,14 @@ public:
    /**
     * @brief      Sets the cube to the default solved state.
     */
-   void SetDefaultState();
+   void SetSolved();
+
+   /**
+    * @brief      Returns true if the cube is in a solved state.
+    *
+    * @return     True if solved, False otherwise.
+    */
+   bool IsSolved();
 
    /**
     * @brief      Executes a single move.
@@ -266,6 +274,14 @@ public:
     * @param      moves         The moves
     */
    static void ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeMove>& moves);
+
+   /**
+    * @brief      Takes in a list of moves and produces the reverse of those moves. 
+    *
+    * @param[in]  moves         The moves
+    * @param      reverseMoves  The reverse moves
+    */
+   static void ReverseMoves(const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves);
 
 private:
    CubeFaceData mCube;

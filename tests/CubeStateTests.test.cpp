@@ -2,6 +2,7 @@
 
 #include <array>
 #include <gtest/gtest.h>
+#include <random>
 
 using namespace cube;
 
@@ -9,7 +10,7 @@ TEST(DefaultsTest, StateTests)
 {
    Cube cube;
    cube.SetState(eCubeFace::Front, 0, 0, eCubeColor::Red);
-   cube.SetDefaultState();
+   cube.SetSolved();
 
    for (int i = 0; i < EnumToInt(eCubeColor::NumColors); i++)
    {
@@ -168,6 +169,51 @@ TEST(RotatePerftTest, StateTests)
    CompareCubeFace(cube, eCubeFace::Right, expectedRight);
    CompareCubeFace(cube, eCubeFace::Bottom, expectedBottom);
    CompareCubeFace(cube, eCubeFace::Back, expectedBack);
+}
+
+TEST(RandomMovesTest, StateTests)
+{
+   // Simple test: Generate a completely random sequence of moves then execute them.
+   // Run them in reverse and see if we end up at the default state.
+   Cube cube;
+   std::vector<eCubeMove> moves;
+   std::vector<eCubeMove> reverseMoves;
+   constexpr int numMoves = 1000;
+   constexpr int numTrials = 10;
+
+   std::random_device rd;
+   std::mt19937 engine(rd());
+   engine.seed(100);
+
+   // Uniform integer distribution between 1 and 6 (like a die roll)
+   std::uniform_int_distribution<int> randomMovesGen(0, EnumToInt(eCubeMove::NumMoves) - 1);
+
+   for (int i = 0; i < numTrials; i++)
+   {
+      engine.seed(i * 100);
+
+      moves.clear();
+      reverseMoves.clear();
+
+      for (int j = 0; j < numMoves; j++)
+      {
+         moves.push_back(static_cast<eCubeMove>(randomMovesGen(engine)));
+      }
+
+      cube.ExecuteMoves(moves.data(), moves.size());
+      Cube::ReverseMoves(moves, reverseMoves);
+      ASSERT_EQ(moves.size(), reverseMoves.size());
+      cube.ExecuteMoves(reverseMoves.data(), reverseMoves.size());
+
+      ASSERT_TRUE(cube.IsSolved());
+
+      // Now make sure each face is in the default position.
+      for (int i = 0; i < EnumToInt(eCubeFace::NumFaces); i++)
+      {
+         eCubeFace face = static_cast<eCubeFace>(i);
+         ASSERT_EQ(cube.ColorOfFace(face), cube.DefaultColorOfFace(face));
+      }
+   }
 }
 
 int main(int argc, char** argv)

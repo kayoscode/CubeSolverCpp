@@ -653,10 +653,10 @@ Cube::Cube()
    static_assert(
       EnumToInt(eCubeColor::Blue) == EnumToInt(eCubeFace::Back), "Incorrect cube config.");
 
-   SetDefaultState();
+   SetSolved();
 }
 
-void Cube::SetDefaultState()
+void Cube::SetSolved()
 {
    for (int i = 0; i < EnumToInt(eCubeColor::NumColors); i++)
    {
@@ -668,6 +668,40 @@ void Cube::SetDefaultState()
          mCube[face][i] = color;
       }
    }
+}
+
+bool Cube::IsSolved()
+{
+   if (!Validate())
+   {
+      return false;
+   }
+
+   // Now ensure each side has the same color.
+   for (int i = 0; i < EnumToInt(eCubeFace::NumFaces); i++)
+   {
+      eCubeFace face = static_cast<eCubeFace>(i);
+      eCubeColor color = ColorOfFace(face);
+      SingleCubeFace& faceData = mCube[i];
+
+      for (int j = 0; j < CubeSize; j++)
+      {
+         for (int k = 0; k < CubeSize; k++)
+         {
+            if (faceData[CubeDimsToIdx(j, k)] != color)
+            {
+               return false;
+            }
+         }
+      }
+   }
+
+   return true;
+}
+
+bool Cube::Validate()
+{
+   return true;
 }
 
 void Cube::ExecuteMoves(eCubeMove* moves, int numMoves)
@@ -844,6 +878,9 @@ void Cube::ExecuteMove(eCubeMove move)
       break;
    case eCubeMove::Z2:
       ExecuteZ2(mCube);
+      break;
+   default:
+      std::cout << "Invalid move " << EnumToInt(move) << "\n";
       break;
    }
 }
@@ -1067,9 +1104,86 @@ void Cube::ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeM
       }
    }
 
-   if (!AddMove(currentToken, moves))
+   if (currentToken.size() > 0)
    {
-      std::cout << "Invalid move in string: " << currentToken << "\n";
+      if (!AddMove(currentToken, moves))
+      {
+         std::cout << "Invalid move in string: " << currentToken << "\n";
+      }
+   }
+}
+
+void Cube::ReverseMoves(const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves)
+{
+   static std::map<eCubeMove, eCubeMove> reverseMap
+   {
+      { eCubeMove::Up, eCubeMove::UpPrime },
+      { eCubeMove::UpPrime, eCubeMove::Up },
+      { eCubeMove::Up2, eCubeMove::Up2 },
+      { eCubeMove::Down, eCubeMove::DownPrime },
+      { eCubeMove::DownPrime, eCubeMove::Down },
+      { eCubeMove::Down2, eCubeMove::Down2 },
+      { eCubeMove::Right, eCubeMove::RightPrime },
+      { eCubeMove::RightPrime, eCubeMove::Right },
+      { eCubeMove::Right2, eCubeMove::Right2 },
+      { eCubeMove::Left, eCubeMove::LeftPrime },
+      { eCubeMove::LeftPrime, eCubeMove::Left },
+      { eCubeMove::Left2, eCubeMove::Left2 },
+      { eCubeMove::Front, eCubeMove::FrontPrime },
+      { eCubeMove::FrontPrime, eCubeMove::Front },
+      { eCubeMove::Front2, eCubeMove::Front2 },
+      { eCubeMove::Back, eCubeMove::BackPrime },
+      { eCubeMove::BackPrime, eCubeMove::Back },
+      { eCubeMove::Back2, eCubeMove::Back2 },
+      { eCubeMove::UpWide, eCubeMove::UpWidePrime },
+      { eCubeMove::UpWidePrime, eCubeMove::UpWide },
+      { eCubeMove::UpWide2, eCubeMove::UpWide2 },
+      { eCubeMove::DownWide, eCubeMove::DownWidePrime },
+      { eCubeMove::DownWidePrime, eCubeMove::DownWide },
+      { eCubeMove::DownWide2, eCubeMove::DownWide2 },
+      { eCubeMove::RightWide, eCubeMove::RightWidePrime },
+      { eCubeMove::RightWidePrime, eCubeMove::RightWide },
+      { eCubeMove::RightWide2, eCubeMove::RightWide2 },
+      { eCubeMove::LeftWide, eCubeMove::LeftWidePrime },
+      { eCubeMove::LeftWidePrime, eCubeMove::LeftWide },
+      { eCubeMove::LeftWide2, eCubeMove::LeftWide2 },
+      { eCubeMove::FrontWide, eCubeMove::FrontWidePrime },
+      { eCubeMove::FrontWidePrime, eCubeMove::FrontWide },
+      { eCubeMove::FrontWide2, eCubeMove::FrontWide2 },
+      { eCubeMove::BackWide, eCubeMove::BackWidePrime },
+      { eCubeMove::BackWidePrime, eCubeMove::BackWide },
+      { eCubeMove::BackWide2, eCubeMove::BackWide2 },
+      { eCubeMove::Middle, eCubeMove::MiddlePrime },
+      { eCubeMove::MiddlePrime, eCubeMove::Middle },
+      { eCubeMove::Middle2, eCubeMove::Middle2 },
+      { eCubeMove::Equator, eCubeMove::EquatorPrime },
+      { eCubeMove::EquatorPrime, eCubeMove::Equator },
+      { eCubeMove::Equator2, eCubeMove::Equator2 },
+      { eCubeMove::Standing, eCubeMove::StandingPrime },
+      { eCubeMove::StandingPrime, eCubeMove::Standing },
+      { eCubeMove::Standing2, eCubeMove::Standing2 },
+      { eCubeMove::X, eCubeMove::XPrime },
+      { eCubeMove::XPrime, eCubeMove::X},
+      { eCubeMove::X2, eCubeMove::X2 },
+      { eCubeMove::Y, eCubeMove::YPrime },
+      { eCubeMove::YPrime, eCubeMove::Y },
+      { eCubeMove::Y2, eCubeMove::Y2 },
+      { eCubeMove::Z, eCubeMove::ZPrime },
+      { eCubeMove::ZPrime, eCubeMove::Z },
+      { eCubeMove::Z2, eCubeMove::Z2 },
+   };
+
+   for (int i = moves.size() - 1; i >= 0; i--)
+   {
+      auto reversedMove = reverseMap.find(moves[i]);
+      if (reversedMove != reverseMap.end())
+      {
+         reverseMoves.push_back(reversedMove->second);
+      }
+      else
+      {
+         std::cout << "Invalid move to reverse: " << EnumToInt(moves[i]) << "\n";
+      }
    }
 }
 }   // namespace cube

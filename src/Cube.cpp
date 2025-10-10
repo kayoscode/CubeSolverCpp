@@ -431,14 +431,17 @@ static void ExecuteBackWide2(CubeFaceData& cube)
 
 static void ExecuteMiddle(CubeFaceData& cube)
 {
+   LayerRotateXClockwise<1>(cube);
 }
 
 static void ExecuteMiddlePrime(CubeFaceData& cube)
 {
+   LayerRotateXCounterClockwise<1>(cube);
 }
 
 static void ExecuteMiddle2(CubeFaceData& cube)
 {
+   LayerRotateXTwice<1>(cube);
 }
 
 static void ExecuteEquator(CubeFaceData& cube)
@@ -663,7 +666,7 @@ void Cube::ExecuteMove(eCubeMove move)
    }
 }
 
-void Cube::PrintFace(eCubeFace faceToken, std::ostream& outputStream)
+void PrintRow(SingleCubeFace& face, int row, std::ostream& outputStream, bool useColor)
 {
    std::array<std::string, EnumToInt(eCubeColor::NumColors)> colorMap = 
    {
@@ -681,32 +684,63 @@ void Cube::PrintFace(eCubeFace faceToken, std::ostream& outputStream)
       "\033[48;2;51;51;255m  \033[0m",
    };
 
+   std::array<std::string, EnumToInt(eCubeColor::NumColors)> textColorMap = 
+   {
+      // Yellow
+      "Y",
+      // White
+      "W",
+      // Red
+      "R",
+      // Orange
+      "O",
+      // Green
+      "G",
+      // Blue
+      "B",
+   };
+
+   for (int i = 0; i < CubeSize; i++)
+   {
+      eCubeColor color = face[CubeDimsToIdx(i, row)];
+      if (useColor)
+      {
+         outputStream << colorMap[EnumToInt(color)];
+      }
+      else
+      {
+         outputStream << textColorMap[EnumToInt(color)];
+      }
+   }
+}
+
+void Cube::PrintFace(eCubeFace faceToken, std::ostream& outputStream, bool useColor)
+{
    SingleCubeFace& face = mCube[EnumToInt(faceToken)];
    for (int j = 0; j < CubeSize; j++)
    {
-      for (int i = 0; i < CubeSize; i++)
-      {
-         eCubeColor color = face[CubeDimsToIdx(i, j)];
-         outputStream << colorMap[EnumToInt(color)];
-      }
-
+      PrintRow(face, j, outputStream, useColor);
       outputStream << "\n";
    }
 }
 
-void Cube::Print(std::ostream& outputStream)
+void Cube::Print(std::ostream& outputStream, bool useColor)
 {
-   outputStream << "Front Face:\n";
-   PrintFace(eCubeFace::Front, outputStream);
-   outputStream << "\nTop Face:\n";
-   PrintFace(eCubeFace::Top, outputStream);
-   outputStream << "\nLeft Face:\n";
-   PrintFace(eCubeFace::Left, outputStream);
-   outputStream << "\nRight Face:\n";
-   PrintFace(eCubeFace::Right, outputStream);
-   outputStream << "\nBottom Face:\n";
-   PrintFace(eCubeFace::Bottom, outputStream);
-   outputStream << "\nBack Face:\n";
-   PrintFace(eCubeFace::Back, outputStream);
+   outputStream << "Front     Top       Left      Right     Bottom    Back      \n";
+   for (int i = 0; i < CubeSize; i++)
+   {
+      PrintRow(mCube[EnumToInt(eCubeFace::Front)], i, outputStream, useColor);
+      outputStream << "    ";
+      PrintRow(mCube[EnumToInt(eCubeFace::Top)], i, outputStream, useColor);
+      outputStream << "    ";
+      PrintRow(mCube[EnumToInt(eCubeFace::Left)], i, outputStream, useColor);
+      outputStream << "    ";
+      PrintRow(mCube[EnumToInt(eCubeFace::Right)], i, outputStream, useColor);
+      outputStream << "    ";
+      PrintRow(mCube[EnumToInt(eCubeFace::Bottom)], i, outputStream, useColor);
+      outputStream << "    ";
+      PrintRow(mCube[EnumToInt(eCubeFace::Back)], i, outputStream, useColor);
+      outputStream << "    |\n";
+   }
 }
 }   // namespace cube

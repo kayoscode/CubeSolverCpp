@@ -244,13 +244,13 @@ public:
     * @brief      Prints the cube to the given stream in a user readable way.
     * @return     String representation of the object.
     */
-   void Print(std::ostream& outputStream);
+   void Print(std::ostream& outputStream, bool useColor = true);
 
    /**
     * @brief      Prints a single face to the output stream.
     * @param      outputStream  The stream to write data to
     */
-   void PrintFace(eCubeFace face, std::ostream& outputStream);
+   void PrintFace(eCubeFace face, std::ostream& outputStream, bool useColor = true);
 
 private:
    CubeFaceData mCube;

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
-#include <type_traits>
+#include <cassert>
+#include <cerrno>
+#include <vector>
 
 namespace cube
 {
@@ -78,16 +80,34 @@ enum class eCubeMove
    BackWide,
    BackWidePrime,
    BackWide2,
+   // Middle moves
+   Middle,
+   MiddlePrime,
+   Middle2,
+   Equator,
+   EquatorPrime,
+   Equator2,
+   Standing,
+   StandingPrime,
+   Standing2,
+   // Cube rotations.
    X,
+   XPrime,
+   X2,
    Y,
-   Z
+   YPrime,
+   Y2,
+   Z,
+   ZPrime,
+   Z2,
+   NumMoves
 };
 
-using CubeState = 
-   std::array<std::array<eCubeColor, CubeSize * CubeSize>, static_cast<int>(eCubeFace::NumFaces)>;
+using SingleCubeFace = std::array<eCubeColor, CubeSize * CubeSize>;
+using CubeFaceData =
+   std::array<SingleCubeFace, static_cast<int>(eCubeFace::NumFaces)>;
 
 template <typename T>
-   requires std::is_same_v<eCubeColor, T> || std::is_same_v<eCubeFace, T>
 [[nodiscard]] constexpr int EnumToInt(T token)
 {
    return static_cast<int>(token);
@@ -99,7 +119,7 @@ template <typename T>
 }
 
 /**
- * @brief      Defines the state of of the cube with manipulation logic.
+ * @brief      Defines operations that can be done on a cube.
  */
 class Cube
 {
@@ -112,7 +132,14 @@ public:
    /**
     * @brief      Sets the cube to the default solved state.
     */
-   void SetDefaultState();
+   void SetSolved();
+
+   /**
+    * @brief      Returns true if the cube is in a solved state.
+    *
+    * @return     True if solved, False otherwise.
+    */
+   bool IsSolved();
 
    /**
     * @brief      Executes a single move.
@@ -155,7 +182,7 @@ public:
    }
 
    /**
-    * @brief      Sets the color to the given color at the face 
+    * @brief      Sets the color to the given color at the face
     * and the X Y coordinates given. For the indexing scheme, see GetState docs
     *
     * @param[in]  face   The face
@@ -168,17 +195,95 @@ public:
       mCube[EnumToInt(face)][CubeDimsToIdx(x, y)] = color;
    }
 
-   [[nodiscard]] constexpr eCubeFace ColorToFace(eCubeColor color)
+   /**
+    * @brief      Returns the default face associated with a given color.
+    *
+    * @param[in]  color  The color
+    *
+    * @return     The cube face.
+    */
+   [[nodiscard]] constexpr eCubeFace DefaultFaceOfColor(eCubeColor color)
    {
       return static_cast<eCubeFace>(color);
    }
 
-   [[nodiscard]] constexpr eCubeColor FaceToColor(eCubeFace face)
+   /**
+    * @brief      Returns the default color associated with the given face.
+    * This is the state if no face rotations have occurred.
+    *
+    * @param[in]  face  The face
+    *
+    * @return     The e cube color.
+    */
+   [[nodiscard]] constexpr eCubeColor DefaultColorOfFace(eCubeFace face)
    {
       return static_cast<eCubeColor>(face);
    }
 
+   /**
+    * @brief      Returns the current face associated with the given color.
+    *
+    * @param[in]  color  The color
+    *
+    * @return     The cube face.
+    */
+   eCubeFace FaceOfColor(eCubeColor color)
+   {
+      for (int i = 0; i < EnumToInt(eCubeFace::NumFaces); i++)
+      {
+         eCubeFace face = static_cast<eCubeFace>(i);
+         if (ColorOfFace(face) == color)
+         {
+            return face;
+         }
+      }
+
+      assert(false && "Color missing from cube.");
+      return DefaultFaceOfColor(color);
+   }
+
+   /**
+    * @brief      Returns the current color associated with the given face.
+    *
+    * @param[in]  face  The face
+    *
+    * @return     The cube color.
+    */
+   eCubeColor ColorOfFace(eCubeFace face)
+   {
+      // Return the color of the middle of the given face.
+      return mCube[EnumToInt(face)][CubeDimsToIdx(CubeSize / 2, CubeSize / 2)];
+   }
+
+   /**
+    * @brief      Prints the cube to the given stream in a user readable way.
+    * @return     String representation of the object.
+    */
+   void Print(std::ostream& outputStream, bool useColor = true);
+
+   /**
+    * @brief      Prints a single face to the output stream.
+    * @param      outputStream  The stream to write data to
+    */
+   void PrintFace(eCubeFace face, std::ostream& outputStream, bool useColor = true);
+
+   /**
+    * @brief      Creates a list of moves given a string of move notation.
+    *
+    * @param[in]  moveNotation  The move notation
+    * @param      moves         The moves
+    */
+   static void ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeMove>& moves);
+
+   /**
+    * @brief      Takes in a list of moves and produces the reverse of those moves. 
+    *
+    * @param[in]  moves         The moves
+    * @param      reverseMoves  The reverse moves
+    */
+   static void ReverseMoves(const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves);
+
 private:
-   CubeState mCube;
+   CubeFaceData mCube;
 };
 }   // namespace cube

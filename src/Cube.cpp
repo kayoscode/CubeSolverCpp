@@ -1,7 +1,11 @@
 #include "Cube.hpp"
 
 #include <array>
+#include <iostream>
+#include <map>
 #include <ostream>
+#include <string>
+#include <unordered_set>
 
 namespace cube
 {
@@ -240,9 +244,9 @@ static void LayerRotateXCounterClockwise(CubeFaceData& faceData)
 {
    tLayerRotateXData<TLayer> layerData(faceData);
    SetColData<TLayer, false>(layerData.FrontFace, layerData.TopTop, layerData.TopMiddle, layerData.TopBottom);
-   SetColData<TLayer, false>(layerData.TopFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
+   SetColData<TLayer, true>(layerData.TopFace, layerData.BackTop, layerData.BackMiddle, layerData.BackBottom);
    SetColData<InvertLayer(TLayer), true>(layerData.BackFace, layerData.BottomTop, layerData.BottomMiddle, layerData.BottomBottom);
-   SetColData<TLayer, true>(layerData.BottomFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
+   SetColData<TLayer, false>(layerData.BottomFace, layerData.FrontTop, layerData.FrontMiddle, layerData.FrontBottom);
 }
 
 template <int TLayer>
@@ -472,8 +476,6 @@ static void ExecuteX(CubeFaceData& cube)
 
 static void ExecuteXPrime(CubeFaceData& cube)
 {
-   // Rotate the whole cube on the X axis. It's not inefficient to call the moves since each
-   // move is independent.
    ExecuteRightPrime(cube);
    ExecuteLeft(cube);
    ExecuteMiddle(cube);
@@ -481,8 +483,6 @@ static void ExecuteXPrime(CubeFaceData& cube)
 
 static void ExecuteX2(CubeFaceData& cube)
 {
-   // Rotate the whole cube on the X axis. It's not inefficient to call the moves since each
-   // move is independent.
    ExecuteRight2(cube);
    ExecuteLeft2(cube);
    ExecuteMiddle2(cube);
@@ -667,6 +667,15 @@ void Cube::SetDefaultState()
       {
          mCube[face][i] = color;
       }
+   }
+}
+
+void Cube::ExecuteMoves(eCubeMove* moves, int numMoves)
+{
+   for (int i = 0; i < numMoves; i++)
+   {
+      ExecuteMove(moves[i]);
+      //Print(std::cout);
    }
 }
 
@@ -921,5 +930,146 @@ void Cube::Print(std::ostream& outputStream, bool useColor)
       outputStream << "\n";
    }
    outputStream << "Front     Top       Left      Right     Bottom    Back      \n";
+}
+
+static std::map<std::string, eCubeMove> moveMap
+{
+   // Standard
+   { "U", eCubeMove::Up },
+   { "D", eCubeMove::Down },
+   { "R", eCubeMove::Right },
+   { "L", eCubeMove::Left },
+   { "F", eCubeMove::Front },
+   { "B", eCubeMove::Back },
+
+   { "U'", eCubeMove::UpPrime },
+   { "D'", eCubeMove::DownPrime },
+   { "R'", eCubeMove::RightPrime },
+   { "L'", eCubeMove::LeftPrime },
+   { "F'", eCubeMove::FrontPrime },
+   { "B'", eCubeMove::BackPrime },
+
+   { "U2", eCubeMove::Up2 },
+   { "D2", eCubeMove::Down2 },
+   { "R2", eCubeMove::Right2 },
+   { "L2", eCubeMove::Left2 },
+   { "F2", eCubeMove::Front2 },
+   { "B2", eCubeMove::Back2 },
+
+   // Wide
+   { "Uw", eCubeMove::UpWide },
+   { "Dw", eCubeMove::DownWide },
+   { "Rw", eCubeMove::RightWide },
+   { "Lw", eCubeMove::LeftWide },
+   { "Fw", eCubeMove::FrontWide },
+   { "Bw", eCubeMove::BackWide },
+   { "u", eCubeMove::UpWide },
+   { "d", eCubeMove::DownWide },
+   { "r", eCubeMove::RightWide },
+   { "l", eCubeMove::LeftWide },
+   { "f", eCubeMove::FrontWide },
+   { "b", eCubeMove::BackWide },
+
+   { "Uw'", eCubeMove::UpWidePrime },
+   { "Dw'", eCubeMove::DownWidePrime },
+   { "Rw'", eCubeMove::RightWidePrime },
+   { "Lw'", eCubeMove::LeftWidePrime },
+   { "Fw'", eCubeMove::FrontWidePrime },
+   { "Bw'", eCubeMove::BackWidePrime },
+   { "u'", eCubeMove::UpWidePrime },
+   { "d'", eCubeMove::DownWidePrime },
+   { "r'", eCubeMove::RightWidePrime },
+   { "l'", eCubeMove::LeftWidePrime },
+   { "f'", eCubeMove::FrontWidePrime },
+   { "b'", eCubeMove::BackWidePrime },
+
+   { "Uw2", eCubeMove::UpWide2 },
+   { "Dw2", eCubeMove::DownWide2 },
+   { "Rw2", eCubeMove::RightWide2 },
+   { "Lw2", eCubeMove::LeftWide2 },
+   { "Fw2", eCubeMove::FrontWide2 },
+   { "Bw2", eCubeMove::BackWide2 },
+   { "u2", eCubeMove::UpWide2 },
+   { "d2", eCubeMove::DownWide2 },
+   { "r2", eCubeMove::RightWide2 },
+   { "l2", eCubeMove::LeftWide2 },
+   { "f2", eCubeMove::FrontWide2 },
+   { "b2", eCubeMove::BackWide2 },
+
+   // Cube rotations
+   { "x", eCubeMove::X },
+   { "y", eCubeMove::Y },
+   { "z", eCubeMove::Z },
+
+   { "x'", eCubeMove::XPrime },
+   { "y'", eCubeMove::YPrime },
+   { "z'", eCubeMove::ZPrime },
+
+   { "x2", eCubeMove::X2 },
+   { "y2", eCubeMove::Y2 },
+   { "z2", eCubeMove::Z2 },
+
+   // Slice moves
+   { "M", eCubeMove::Middle },
+   { "E", eCubeMove::Equator },
+   { "S", eCubeMove::Standing },
+
+   { "M'", eCubeMove::MiddlePrime },
+   { "E'", eCubeMove::EquatorPrime },
+   { "S'", eCubeMove::StandingPrime },
+
+   { "M2", eCubeMove::Middle2 },
+   { "E2", eCubeMove::Equator2 },
+   { "S2", eCubeMove::Standing2 },
+};
+
+static std::unordered_set<char> validChars = {
+   'U', 'D', 'R', 'L', 'F', 'B',
+   'u', 'd', 'r', 'l', 'f', 'b',
+   '\'', '2',
+   'w',
+   'x', 'y', 'z',
+   'M', 'E', 'S'
+};
+
+static bool AddMove(const std::string& currentToken, std::vector<eCubeMove>& moves)
+{
+   auto moveToken = moveMap.find(currentToken);
+   if (moveToken != moveMap.end())
+   {
+      moves.push_back(moveToken->second);
+      return true;
+   }
+
+   return false;
+}
+
+void Cube::ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeMove>& moves)
+{
+   std::string currentToken;
+   for (int i = 0; i < moveNotation.size(); i++)
+   {
+      if (validChars.contains(moveNotation[i]))
+      {
+         currentToken += moveNotation[i];
+      }
+      else
+      {
+         if (currentToken.size() > 0)
+         {
+            if (!AddMove(currentToken, moves))
+            {
+               std::cout << "Invalid move in string: " << currentToken << "\n";
+            }
+
+            currentToken.clear();
+         }
+      }
+   }
+
+   if (!AddMove(currentToken, moves))
+   {
+      std::cout << "Invalid move in string: " << currentToken << "\n";
+   }
 }
 }   // namespace cube

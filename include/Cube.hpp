@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <cerrno>
+#include <vector>
 
 namespace cube
 {
@@ -257,6 +258,14 @@ public:
     * @param      outputStream  The stream to write data to
     */
    void PrintFace(eCubeFace face, std::ostream& outputStream, bool useColor = true);
+
+   /**
+    * @brief      Creates a list of moves given a string of move notation.
+    *
+    * @param[in]  moveNotation  The move notation
+    * @param      moves         The moves
+    */
+   static void ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeMove>& moves);
 
 private:
    CubeFaceData mCube;

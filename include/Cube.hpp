@@ -293,13 +293,5 @@ public:
 
 private:
    CubeFaceData mCube;
-
-   class CubeStaticConstructor
-   {
-   public:
-      CubeStaticConstructor();
-   };
-   // We need this static constructor to init some memory in static space in a thread safe manner.
-   CubeStaticConstructor mStaticConstructor;
 };
 }   // namespace cube

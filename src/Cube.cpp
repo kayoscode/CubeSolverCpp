@@ -6,6 +6,7 @@
 #include <ostream>
 #include <string>
 #include <unordered_set>
+#include <utility>
 
 namespace cube
 {
@@ -639,7 +640,6 @@ static void ExecuteZ2(CubeFaceData& cube)
 }
 
 Cube::Cube()
-: mStaticConstructor()
 {
    static_assert(
       EnumToInt(eCubeColor::Yellow) == EnumToInt(eCubeFace::Top), "Incorrect cube config.");
@@ -969,125 +969,159 @@ void Cube::Print(std::ostream& outputStream, bool useColor)
    outputStream << "Front     Top       Left      Right     Bottom    Back      \n";
 }
 
-static std::map<std::string, eCubeMove> NotationToMoveMap
+class MoveMaps
 {
-   // Standard
-   { "U", eCubeMove::Up },
-   { "D", eCubeMove::Down },
-   { "R", eCubeMove::Right },
-   { "L", eCubeMove::Left },
-   { "F", eCubeMove::Front },
-   { "B", eCubeMove::Back },
-
-   { "U'", eCubeMove::UpPrime },
-   { "D'", eCubeMove::DownPrime },
-   { "R'", eCubeMove::RightPrime },
-   { "L'", eCubeMove::LeftPrime },
-   { "F'", eCubeMove::FrontPrime },
-   { "B'", eCubeMove::BackPrime },
-
-   { "U2", eCubeMove::Up2 },
-   { "D2", eCubeMove::Down2 },
-   { "R2", eCubeMove::Right2 },
-   { "L2", eCubeMove::Left2 },
-   { "F2", eCubeMove::Front2 },
-   { "B2", eCubeMove::Back2 },
-
-   // Wide
-   { "Uw", eCubeMove::UpWide },
-   { "Dw", eCubeMove::DownWide },
-   { "Rw", eCubeMove::RightWide },
-   { "Lw", eCubeMove::LeftWide },
-   { "Fw", eCubeMove::FrontWide },
-   { "Bw", eCubeMove::BackWide },
-   { "u", eCubeMove::UpWide },
-   { "d", eCubeMove::DownWide },
-   { "r", eCubeMove::RightWide },
-   { "l", eCubeMove::LeftWide },
-   { "f", eCubeMove::FrontWide },
-   { "b", eCubeMove::BackWide },
-
-   { "Uw'", eCubeMove::UpWidePrime },
-   { "Dw'", eCubeMove::DownWidePrime },
-   { "Rw'", eCubeMove::RightWidePrime },
-   { "Lw'", eCubeMove::LeftWidePrime },
-   { "Fw'", eCubeMove::FrontWidePrime },
-   { "Bw'", eCubeMove::BackWidePrime },
-   { "u'", eCubeMove::UpWidePrime },
-   { "d'", eCubeMove::DownWidePrime },
-   { "r'", eCubeMove::RightWidePrime },
-   { "l'", eCubeMove::LeftWidePrime },
-   { "f'", eCubeMove::FrontWidePrime },
-   { "b'", eCubeMove::BackWidePrime },
-
-   { "Uw2", eCubeMove::UpWide2 },
-   { "Dw2", eCubeMove::DownWide2 },
-   { "Rw2", eCubeMove::RightWide2 },
-   { "Lw2", eCubeMove::LeftWide2 },
-   { "Fw2", eCubeMove::FrontWide2 },
-   { "Bw2", eCubeMove::BackWide2 },
-   { "u2", eCubeMove::UpWide2 },
-   { "d2", eCubeMove::DownWide2 },
-   { "r2", eCubeMove::RightWide2 },
-   { "l2", eCubeMove::LeftWide2 },
-   { "f2", eCubeMove::FrontWide2 },
-   { "b2", eCubeMove::BackWide2 },
-
-   // Cube rotations
-   { "x", eCubeMove::X },
-   { "y", eCubeMove::Y },
-   { "z", eCubeMove::Z },
-
-   { "x'", eCubeMove::XPrime },
-   { "y'", eCubeMove::YPrime },
-   { "z'", eCubeMove::ZPrime },
-
-   { "x2", eCubeMove::X2 },
-   { "y2", eCubeMove::Y2 },
-   { "z2", eCubeMove::Z2 },
-
-   // Slice moves
-   { "M", eCubeMove::Middle },
-   { "E", eCubeMove::Equator },
-   { "S", eCubeMove::Standing },
-
-   { "M'", eCubeMove::MiddlePrime },
-   { "E'", eCubeMove::EquatorPrime },
-   { "S'", eCubeMove::StandingPrime },
-
-   { "M2", eCubeMove::Middle2 },
-   { "E2", eCubeMove::Equator2 },
-   { "S2", eCubeMove::Standing2 },
-};
-
-std::map<eCubeMove, std::string> MoveToNotationMap;
-static std::unordered_set<char> ValidChars;
-
-Cube::CubeStaticConstructor::CubeStaticConstructor()
-{
-   // Init valid chars set and setup the default notations.
-   for (auto kvp : NotationToMoveMap)
+public:
+   static const std::map<std::string, eCubeMove>& GetNotationToMoveMap()
    {
-      for (int i = 0; i < kvp.first.size(); i++)
+      static const std::map<std::string, eCubeMove> notationToMoveMap = []()
       {
-         if (!ValidChars.contains(kvp.first[i]))
+         std::map<std::string, eCubeMove> result =
          {
-            ValidChars.emplace(kvp.first[i]);
-         }
-      }
+            // Standard
+            { "U", eCubeMove::Up },
+            { "D", eCubeMove::Down },
+            { "R", eCubeMove::Right },
+            { "L", eCubeMove::Left },
+            { "F", eCubeMove::Front },
+            { "B", eCubeMove::Back },
 
-      // Now set the mapping to notation if it's not already set.
-      if (!MoveToNotationMap.contains(kvp.second))
-      {
-         MoveToNotationMap.emplace(kvp.second, kvp.first);
-      }
+            { "U'", eCubeMove::UpPrime },
+            { "D'", eCubeMove::DownPrime },
+            { "R'", eCubeMove::RightPrime },
+            { "L'", eCubeMove::LeftPrime },
+            { "F'", eCubeMove::FrontPrime },
+            { "B'", eCubeMove::BackPrime },
+
+            { "U2", eCubeMove::Up2 },
+            { "D2", eCubeMove::Down2 },
+            { "R2", eCubeMove::Right2 },
+            { "L2", eCubeMove::Left2 },
+            { "F2", eCubeMove::Front2 },
+            { "B2", eCubeMove::Back2 },
+
+            // Wide
+            { "Uw", eCubeMove::UpWide },
+            { "Dw", eCubeMove::DownWide },
+            { "Rw", eCubeMove::RightWide },
+            { "Lw", eCubeMove::LeftWide },
+            { "Fw", eCubeMove::FrontWide },
+            { "Bw", eCubeMove::BackWide },
+            { "u", eCubeMove::UpWide },
+            { "d", eCubeMove::DownWide },
+            { "r", eCubeMove::RightWide },
+            { "l", eCubeMove::LeftWide },
+            { "f", eCubeMove::FrontWide },
+            { "b", eCubeMove::BackWide },
+
+            { "Uw'", eCubeMove::UpWidePrime },
+            { "Dw'", eCubeMove::DownWidePrime },
+            { "Rw'", eCubeMove::RightWidePrime },
+            { "Lw'", eCubeMove::LeftWidePrime },
+            { "Fw'", eCubeMove::FrontWidePrime },
+            { "Bw'", eCubeMove::BackWidePrime },
+            { "u'", eCubeMove::UpWidePrime },
+            { "d'", eCubeMove::DownWidePrime },
+            { "r'", eCubeMove::RightWidePrime },
+            { "l'", eCubeMove::LeftWidePrime },
+            { "f'", eCubeMove::FrontWidePrime },
+            { "b'", eCubeMove::BackWidePrime },
+
+            { "Uw2", eCubeMove::UpWide2 },
+            { "Dw2", eCubeMove::DownWide2 },
+            { "Rw2", eCubeMove::RightWide2 },
+            { "Lw2", eCubeMove::LeftWide2 },
+            { "Fw2", eCubeMove::FrontWide2 },
+            { "Bw2", eCubeMove::BackWide2 },
+            { "u2", eCubeMove::UpWide2 },
+            { "d2", eCubeMove::DownWide2 },
+            { "r2", eCubeMove::RightWide2 },
+            { "l2", eCubeMove::LeftWide2 },
+            { "f2", eCubeMove::FrontWide2 },
+            { "b2", eCubeMove::BackWide2 },
+
+            // Cube rotations
+            { "x", eCubeMove::X },
+            { "y", eCubeMove::Y },
+            { "z", eCubeMove::Z },
+
+            { "x'", eCubeMove::XPrime },
+            { "y'", eCubeMove::YPrime },
+            { "z'", eCubeMove::ZPrime },
+
+            { "x2", eCubeMove::X2 },
+            { "y2", eCubeMove::Y2 },
+            { "z2", eCubeMove::Z2 },
+
+            // Slice moves
+            { "M", eCubeMove::Middle },
+            { "E", eCubeMove::Equator },
+            { "S", eCubeMove::Standing },
+
+            { "M'", eCubeMove::MiddlePrime },
+            { "E'", eCubeMove::EquatorPrime },
+            { "S'", eCubeMove::StandingPrime },
+
+            { "M2", eCubeMove::Middle2 },
+            { "E2", eCubeMove::Equator2 },
+            { "S2", eCubeMove::Standing2 },
+         };
+
+         return result;
+      }();
+
+      return notationToMoveMap;
    }
-}
+
+   static const std::map<eCubeMove, std::string>& GetMoveToNotationMap()
+   {
+      static const std::map<eCubeMove, std::string>& moveToNotationMap = []()
+      {
+         // Init valid chars set and setup the default notations.
+         std::map<eCubeMove, std::string> moveToNotationMap;
+         for (auto kvp : GetNotationToMoveMap())
+         {
+            // Now set the mapping to notation if it's not already set.
+            if (!moveToNotationMap.contains(kvp.second))
+            {
+               moveToNotationMap.emplace(kvp.second, kvp.first);
+            }
+         }
+
+         return moveToNotationMap;
+      }();
+
+      return moveToNotationMap;
+   }
+
+   static const std::unordered_set<char>& GetValidChars()
+   {
+      static const std::unordered_set<char> validChars = []()
+      {
+         // Init valid chars set and setup the default notations.
+         std::unordered_set<char> validChars;
+         for (auto kvp : GetNotationToMoveMap())
+         {
+            for (int i = 0; i < kvp.first.size(); i++)
+            {
+               if (!validChars.contains(kvp.first[i]))
+               {
+                  validChars.emplace(kvp.first[i]);
+               }
+            }
+         }
+
+         return validChars;
+      }();
+
+      return validChars;
+   }
+};
 
 static bool AddMove(const std::string& currentToken, std::vector<eCubeMove>& moves)
 {
-   auto moveToken = NotationToMoveMap.find(currentToken);
-   if (moveToken != NotationToMoveMap.end())
+   auto moveToken = MoveMaps::GetNotationToMoveMap().find(currentToken);
+   if (moveToken != MoveMaps::GetNotationToMoveMap().end())
    {
       moves.push_back(moveToken->second);
       return true;
@@ -1101,7 +1135,7 @@ void Cube::ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeM
    std::string currentToken;
    for (int i = 0; i < moveNotation.size(); i++)
    {
-      if (ValidChars.contains(moveNotation[i]))
+      if (MoveMaps::GetValidChars().contains(moveNotation[i]))
       {
          currentToken += moveNotation[i];
       }
@@ -1142,9 +1176,9 @@ void Cube::SerializeMoveList(std::ostream& outputStream, eCubeMove *moves, size_
          outputStream << "- ";
       }
 
-      auto move = MoveToNotationMap.find(moves[i]);
+      auto move = MoveMaps::GetMoveToNotationMap().find(moves[i]);
 
-      if (move != MoveToNotationMap.end())
+      if (move != MoveMaps::GetMoveToNotationMap().end())
       {
          outputStream << move->second << " ";
       }

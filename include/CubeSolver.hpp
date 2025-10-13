@@ -11,7 +11,13 @@ enum class eFaceEdgePos
    LeftEdge,
    RightEdge,
    BottomEdge,
+   NumEdges,
 };
+
+constexpr int GetNumEdgeTypes() 
+{
+   return static_cast<int>(eFaceEdgePos::NumEdges);
+}
 
 class CubeSolveUtils
 {
@@ -109,18 +115,5 @@ public:
 private:
    bool mShowCubeAfterEachStep;
    bool mAddSeparators;
-
-   struct tCrossAlgorithms
-   {
-      tCrossAlgorithms()
-      {
-         Cube::ParseMoveNotation("F' Uw F' Uw'", SolveInvertedEdge);
-      }
-
-      // Solves an edge that is in place but inverted when the cube has that face in the front.
-      std::vector<eCubeMove> SolveInvertedEdge;
-   };
-
-   tCrossAlgorithms mCrossAlgorithms;
 };
 }   // namespace cube

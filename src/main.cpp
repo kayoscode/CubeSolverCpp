@@ -8,11 +8,10 @@ using namespace cube;
 
 int main()
 {
-   Cube cube;
    std::vector<eCubeMove> moves;
-   Cube::ParseMoveNotation(
-      "R' u R' u'", moves);
+   Cube::ParseMoveNotation("R' u R' u'", moves);
 
+   Cube cube;
    cube.ExecuteMoves(moves.data(), moves.size());
    cube.Print(std::cout);
 

@@ -1,18 +1,50 @@
 #include "Cube.hpp"
 #include "CubeSolver.hpp"
+
 #include <map>
+#include <vector>
+
+#define CUBE_ALG_DEF(name, moves)                           \
+   static const std::vector<eCubeMove>& name()              \
+   {                                                        \
+      static auto result = GenerateMoves(moves)();          \
+      return result;                                        \
+   }
 
 namespace cube
 {
    constexpr eCubeColor BottomColor = Cube::DefaultColorOfFace(eCubeFace::Bottom);
    constexpr eCubeColor FrontColor = Cube::DefaultColorOfFace(eCubeFace::Front);
 
+   static auto GenerateMoves(const std::string& moveNotation)
+   {
+      return [moveNotation]()
+      {
+         std::vector<eCubeMove> moves;
+         Cube::ParseMoveNotation(moveNotation, moves);
+         return moves;
+      };
+   }
+
+   class CrossAlgorithms
+   {
+   public:
+      // To use, position the inverted edge at the right side of the right face.
+      CUBE_ALG_DEF(SolveInvertedEdge, "Uw R' Uw'");
+   };
+
+   void AppendMove(Cube& cube, std::vector<eCubeMove>& moveList, eCubeMove move)
+   {
+      cube.ExecuteMove(move);
+      moveList.push_back(move);
+   }
+
+
    void AppendMoves(Cube& cube, std::vector<eCubeMove>& moveList, const std::vector<eCubeMove>& newMoves)
    {
       for (int i = 0; i < newMoves.size(); i++)
       {
-         cube.ExecuteMove(newMoves[i]);
-         moveList.push_back(newMoves[i]);
+         AppendMove(cube, moveList, newMoves[i]);
       }
    }
 
@@ -189,6 +221,42 @@ namespace cube
       }
    }
 
+   /**
+    * @brief      Rotates a face that appears on the front back left or right of the cube to the right side
+    * of the cube..
+    *
+    * @param      cube      The cube
+    * @param[in]  face      The face
+    * @param      moveList  The move list
+    */
+   static void RotateSideFaceToRight(Cube& cube, eCubeFace face, std::vector<eCubeMove>& moveList)
+   {
+      if (face != eCubeFace::Right)
+      {
+         eCubeMove orientingMove;
+
+         switch (face)
+         {
+         case cube::eCubeFace::Front:
+            orientingMove = eCubeMove::YPrime;
+            break;
+         case cube::eCubeFace::Back:
+            orientingMove = eCubeMove::Y;
+            break;
+         case cube::eCubeFace::Left:
+            orientingMove = eCubeMove::Y2;
+            break;
+         default:
+            // Error case? Cannot be the front, bottom, or top at this point.
+            orientingMove = eCubeMove::NumMoves;
+            break;
+         }
+
+         moveList.push_back(orientingMove);
+         cube.ExecuteMove(orientingMove);
+      }
+   }
+
    static bool OrientCube(Cube& cube, std::ostream& outputStream, bool useSeparators)
    {
       // We want white on the bottom.
@@ -237,7 +305,92 @@ namespace cube
       return false;
    }
 
-   void SolveCrossFace(Cube& cube, eCubeFace face, std::ostream& outputStream, std::vector<eCubeMove>& moves)
+   static eCubeFace GetOppositeFace(eCubeFace face)
+   {
+      switch (face)
+      {
+      case cube::eCubeFace::Front:
+         return eCubeFace::Back;
+      case cube::eCubeFace::Back:
+         return eCubeFace::Front;
+      case cube::eCubeFace::Left:
+         return eCubeFace::Right;
+      case cube::eCubeFace::Right:
+         return eCubeFace::Left;
+      case cube::eCubeFace::Top:
+         return eCubeFace::Bottom;
+      case cube::eCubeFace::Bottom:
+         return eCubeFace::Top;
+      }
+   }
+
+   /**
+    * @brief      Returns true if the edge was found in the given position and it has been solved.
+    */
+   static bool SolveCrossEdge(Cube& cube, eCubeFace targetFace, bool usingOppositeFace, eFaceEdgePos edgePos,
+      std::vector<eCubeMove>& moveList)
+   {
+      assert(targetFace == eCubeFace::Front);
+      assert(targetFace == eCubeFace::Back);
+      assert(targetFace == eCubeFace::Left);
+      assert(targetFace == eCubeFace::Right);
+
+      bool solved = false;
+      eCubeColor faceColor = cube.ColorOfFace(targetFace);
+
+      if (usingOppositeFace)
+      {
+         // In this case, if the edge appears in opposite face, bring it to the top and send 
+         // it to the target face after rotating the target face to the right. Then solve the edge
+
+         // bool result = SolveCrossEdge(cube, targetFace, false, eFaceEdgePos::TopEdge);
+         // assert(result == true);
+         // return result;
+      }
+      else
+      {
+         // The edge appears on the face we are trying to solve, goodie!
+         // TODO: Right now, the move list is being appended, but really what we want is to be able to 
+         // test the cube assuming the face we are testing is always on the right. Lets go ahead and create another
+         // move list and make sure it's facing right. If we find the edge and have to solve it, we 
+         // will accept the move list, otherwise we can simply reverse and discard it.
+         bool isInverted;
+         bool edgeInPosition = CubeSolveUtils::IsEdgeInPosition(cube, targetFace, edgePos, faceColor, BottomColor, isInverted);
+
+         if (edgeInPosition)
+         {
+            if (!isInverted)
+            {
+               // Simply rotate the piece of the lower position
+               RotateSideFaceToRight(cube, targetFace, moveList);
+               switch (edgePos)
+               {
+               case eFaceEdgePos::TopEdge:
+                  AppendMove(cube, moveList, eCubeMove::Right2);
+                  break;
+               case eFaceEdgePos::LeftEdge:
+                  AppendMove(cube, moveList, eCubeMove::Right2);
+                  break;
+               case eFaceEdgePos::TopEdge:
+                  AppendMove(cube, moveList, eCubeMove::Right2);
+                  break;
+               default:
+                  // Do nothing, edge already solved.
+                  break;
+               }
+            }
+            else 
+            {
+            }
+
+            return true;
+         }
+      }
+
+      return solved;
+   }
+
+   static void SolveCrossFace(Cube& cube, eCubeFace face, std::ostream& outputStream, std::vector<eCubeMove>& moves)
    {
       eCubeColor faceColor = cube.ColorOfFace(face);
 
@@ -251,17 +404,30 @@ namespace cube
          return;
       }
 
-      std::vector<eCubeMove> moveList;
-      RotateSideFaceToFront(cube, face, moveList);
+      RotateSideFaceToRight(cube, face, moves);
 
       // Handle the case where the edge is in position, but inverted.
       if (edgeInPosition && isInverted)
       {
-         //AppendMoves(cube, moveList, tCrossAlgorithms::SolveInvertedEdge);
+         AppendMove(cube, moves, eCubeMove::RightPrime);
+         AppendMoves(cube, moves, CrossAlgorithms::SolveInvertedEdge());
+      }
+      else
+      {
+         // The edge is somewhere else on the cube, find it and solve it.
+         // We know it's either going to be on this face or the back face inverted
+
+      }
+
+      for (int i = 0; i < GetNumEdgeTypes(); i++)
+      {
+         bool isInverted;
+         bool edgeInPosition = CubeSolveUtils::IsEdgeInPosition(cube, face, static_cast<eFaceEdgePos>(i), 
+            faceColor, BottomColor, isInverted);
       }
    }
 
-   bool SolveCross(Cube& cube, std::ostream& outputStream, bool useSeparators)
+   static bool SolveCross(Cube& cube, std::ostream& outputStream, bool useSeparators)
    {
       std::vector<eCubeMove> moves;
       SolveCrossFace(cube, eCubeFace::Front, outputStream, moves);
@@ -273,6 +439,7 @@ namespace cube
       {
          outputStream << "Cross: ";
          Cube::SerializeMoveList(outputStream, moves.data(), moves.size());
+         outputStream << "\n";
          return true;
       }
 

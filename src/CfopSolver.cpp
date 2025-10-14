@@ -110,65 +110,69 @@ namespace cube
    void CubeSolveUtils::GetAdjacentEdge(eCubeFace face, eFaceEdgePos edge, 
       eCubeFace& resultFace, eFaceEdgePos& resultEdge)
    {
-      static std::map<eCubeFace, std::map<eFaceEdgePos, std::tuple<eCubeFace, eFaceEdgePos>>> adjacentEdgeMappings
+      std::tuple<eCubeFace, eFaceEdgePos> result;
+
+      switch (face)
       {
-         { 
-            eCubeFace::Front, 
-            {
-               { eFaceEdgePos::TopEdge, { eCubeFace::Top, eFaceEdgePos::BottomEdge } },
-               { eFaceEdgePos::LeftEdge, { eCubeFace::Left, eFaceEdgePos::RightEdge } },
-               { eFaceEdgePos::RightEdge, { eCubeFace::Right, eFaceEdgePos::LeftEdge } },
-               { eFaceEdgePos::BottomEdge, { eCubeFace::Bottom, eFaceEdgePos::TopEdge } },
-            },
-         },
+      case eCubeFace::Front:
+         switch (edge)
          {
-            eCubeFace::Left, 
-            {
-               { eFaceEdgePos::TopEdge, { eCubeFace::Top, eFaceEdgePos::LeftEdge } },
-               { eFaceEdgePos::LeftEdge, { eCubeFace::Back, eFaceEdgePos::RightEdge } },
-               { eFaceEdgePos::RightEdge, { eCubeFace::Front, eFaceEdgePos::LeftEdge } },
-               { eFaceEdgePos::BottomEdge, { eCubeFace::Bottom, eFaceEdgePos::LeftEdge } },
-            }
-         },
+            case eFaceEdgePos::TopEdge: result = { eCubeFace::Top, eFaceEdgePos::BottomEdge }; break;
+            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Left, eFaceEdgePos::RightEdge }; break;
+            case eFaceEdgePos::RightEdge: result = { eCubeFace::Right, eFaceEdgePos::LeftEdge }; break;
+            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::TopEdge }; break;
+         }
+         break;
+      case eCubeFace::Left:
+         switch (edge)
          {
-            eCubeFace::Back, 
-            {
-               { eFaceEdgePos::TopEdge, { eCubeFace::Top, eFaceEdgePos::TopEdge } },
-               { eFaceEdgePos::LeftEdge, { eCubeFace::Right, eFaceEdgePos::RightEdge } },
-               { eFaceEdgePos::RightEdge, { eCubeFace::Left, eFaceEdgePos::LeftEdge } },
-               { eFaceEdgePos::BottomEdge, { eCubeFace::Bottom, eFaceEdgePos::BottomEdge } },
-            }
-         },
+            case eFaceEdgePos::TopEdge: result = { eCubeFace::Top, eFaceEdgePos::LeftEdge }; break;
+            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Back, eFaceEdgePos::RightEdge }; break;
+            case eFaceEdgePos::RightEdge: result = { eCubeFace::Front, eFaceEdgePos::LeftEdge }; break;
+            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::LeftEdge }; break;
+         }
+         break;
+      case eCubeFace::Back:
+         switch (edge)
          {
-            eCubeFace::Right, 
-            {
-               { eFaceEdgePos::TopEdge, { eCubeFace::Top, eFaceEdgePos::RightEdge } },
-               { eFaceEdgePos::LeftEdge, { eCubeFace::Front, eFaceEdgePos::RightEdge } },
-               { eFaceEdgePos::RightEdge, { eCubeFace::Back, eFaceEdgePos::LeftEdge } },
-               { eFaceEdgePos::BottomEdge, { eCubeFace::Bottom, eFaceEdgePos::RightEdge } },
-            }
-         },
+            case eFaceEdgePos::TopEdge: result = { eCubeFace::Top, eFaceEdgePos::TopEdge }; break;
+            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Right, eFaceEdgePos::RightEdge }; break;
+            case eFaceEdgePos::RightEdge: result = { eCubeFace::Left, eFaceEdgePos::LeftEdge }; break;
+            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::BottomEdge }; break;
+         }
+         break;
+      case eCubeFace::Right:
+         switch (edge)
          {
-            eCubeFace::Top, 
-            {
-               { eFaceEdgePos::TopEdge, { eCubeFace::Back, eFaceEdgePos::TopEdge } },
-               { eFaceEdgePos::LeftEdge, { eCubeFace::Left, eFaceEdgePos::TopEdge } },
-               { eFaceEdgePos::RightEdge, { eCubeFace::Right, eFaceEdgePos::TopEdge } },
-               { eFaceEdgePos::BottomEdge, { eCubeFace::Front, eFaceEdgePos::TopEdge } },
-            }
-         },
+            case eFaceEdgePos::TopEdge: result = { eCubeFace::Top, eFaceEdgePos::RightEdge }; break;
+            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Front, eFaceEdgePos::RightEdge }; break;
+            case eFaceEdgePos::RightEdge: result = { eCubeFace::Back, eFaceEdgePos::LeftEdge }; break;
+            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::RightEdge }; break;
+         }
+         break;
+      case eCubeFace::Top:
+         switch (edge)
          {
-            eCubeFace::Bottom, 
-            {
-               { eFaceEdgePos::TopEdge, { eCubeFace::Front, eFaceEdgePos::BottomEdge } },
-               { eFaceEdgePos::LeftEdge, { eCubeFace::Left, eFaceEdgePos::BottomEdge } },
-               { eFaceEdgePos::RightEdge, { eCubeFace::Right, eFaceEdgePos::BottomEdge } },
-               { eFaceEdgePos::BottomEdge, { eCubeFace::Back, eFaceEdgePos::BottomEdge } },
-            }
-         },
+            case eFaceEdgePos::TopEdge: result = { eCubeFace::Back, eFaceEdgePos::TopEdge }; break;
+            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Left, eFaceEdgePos::TopEdge }; break;
+            case eFaceEdgePos::RightEdge: result = { eCubeFace::Right, eFaceEdgePos::TopEdge }; break;
+            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Front, eFaceEdgePos::TopEdge }; break;
+         }
+         break;
+      case eCubeFace::Bottom:
+         switch (edge)
+         {
+            case eFaceEdgePos::TopEdge: result = { eCubeFace::Front, eFaceEdgePos::BottomEdge }; break;
+            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Left, eFaceEdgePos::BottomEdge }; break;
+            case eFaceEdgePos::RightEdge: result = { eCubeFace::Right, eFaceEdgePos::BottomEdge }; break;
+            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Back, eFaceEdgePos::BottomEdge }; break;
+         }
+         break;
+      default:
+         assert(false);
+         break;
       };
 
-      std::tuple<eCubeFace, eFaceEdgePos> result = adjacentEdgeMappings[face][edge];
       resultFace = std::get<0>(result);
       resultEdge = std::get<1>(result);
    }

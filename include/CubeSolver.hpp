@@ -11,13 +11,43 @@ enum class eFaceEdgePos
    LeftEdge,
    RightEdge,
    BottomEdge,
-   NumEdges,
+};
+
+enum class eFaceCornerPos
+{
+   TopLeft,
+   TopRight,
+   BottomLeft,
+   BottomRight
 };
 
 constexpr int GetNumEdgeTypes() 
 {
-   return static_cast<int>(eFaceEdgePos::NumEdges);
+   return static_cast<int>(eFaceEdgePos::BottomEdge) + 1;
 }
+
+constexpr int GetNumCornerTypes() 
+{
+   return static_cast<int>(eFaceCornerPos::BottomRight) + 1;
+}
+
+struct tCornerDescriptor
+{
+   constexpr tCornerDescriptor(eCubeFace faceY, eFaceCornerPos cornerY, eCubeFace faceX, eFaceCornerPos cornerX,
+      eCubeFace faceZ, eFaceCornerPos cornerZ)
+   : FaceY(faceY), CornerY(cornerY), FaceX(faceX), CornerX(cornerX), FaceZ(faceZ), CornerZ(cornerZ)
+   {
+   }
+
+   eCubeFace FaceY;
+   eFaceCornerPos CornerY;
+
+   eCubeFace FaceX;
+   eFaceCornerPos CornerX;
+
+   eCubeFace FaceZ;
+   eFaceCornerPos CornerZ;
+};
 
 /**
  * @brief      Stores a list of moves. Abstracts away logic allowing the moves to be 
@@ -32,7 +62,7 @@ public:
    }
 
    /**
-    * @brief      Simultes the moves, but doesn't append to the move list yet.
+    * @brief      Simulates the moves, but doesn't append to the move list yet.
     *
     * @param      cube   The cube
     * @param[in]  moves  The moves
@@ -132,6 +162,15 @@ private:
 class CubeSolveUtils
 {
 public:
+   /**
+    * @brief      Returns the details about the given corner. Fills all information
+    *
+    * @param[in]  face              The face
+    * @param[in]  corner            The corner
+    * @param      resultDescriptor  The result descriptor
+    */
+   static void GetCornerDescriptor(eCubeFace face, eFaceCornerPos corner, tCornerDescriptor& resultDescriptor);
+
    /**
     * @brief      Finds the postion on the cube where the adjacent edge can be found.
     *

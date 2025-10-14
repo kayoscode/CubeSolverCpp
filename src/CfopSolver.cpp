@@ -63,6 +63,42 @@ namespace cube
       }
    }
 
+   void CubeSolveUtils::GetCornerDescriptor(eCubeFace face, eFaceCornerPos corner, 
+      tCornerDescriptor& cornerDescriptor)
+   {
+      // TODO: I want to specify the corner descriptors for each face and corner position, but since corners
+      // only have 8 positions, I can specify the front and the back corners and generate the rest
+      // at runtime statically. Lets do that. Then I can use it to generate moves to solve the corners.
+      std::map<eCubeFace, std::map<eFaceCornerPos, tCornerDescriptor>> cornerDescriptorMappings
+      {
+         {
+            eCubeFace::Front,
+            {
+               { 
+                  eFaceCornerPos::TopLeft, tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomLeft, 
+                                                             eCubeFace::Left, eFaceCornerPos::TopRight,
+                                                             eCubeFace::Front, eFaceCornerPos::TopLeft) 
+               },
+               {
+                  eFaceCornerPos::TopRight, tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomRight, 
+                                                              eCubeFace::Right, eFaceCornerPos::TopLeft,
+                                                              eCubeFace::Front, eFaceCornerPos::TopRight) 
+               },
+               {
+                  eFaceCornerPos::BottomLeft, tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopLeft, 
+                                                                eCubeFace::Left, eFaceCornerPos::BottomRight,
+                                                                eCubeFace::Front, eFaceCornerPos::BottomLeft) 
+               },
+               {
+                  eFaceCornerPos::BottomRight, tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopRight, 
+                                                                 eCubeFace::Right, eFaceCornerPos::BottomLeft,
+                                                                 eCubeFace::Front, eFaceCornerPos::BottomRight) 
+               },
+            }
+         }
+      };
+   }
+
    /**
     * @brief      Returns the information about the adjacent edge to the given edge on the given face.
     *

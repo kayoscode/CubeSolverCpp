@@ -2,7 +2,8 @@
 
 #include <array>
 #include <cassert>
-#include <cerrno>
+#include <ostream>
+#include <random>
 #include <vector>
 
 namespace cube
@@ -290,6 +291,25 @@ public:
     */
    static void ReverseMoves(
       const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves);
+
+   /**
+    * @brief      Generates a random sequence of moves for the scramble.
+    */
+   static void GenerateScramble(std::vector<eCubeMove>& scramble, int numMoves, int seed)
+   {
+      std::random_device rd;
+      std::mt19937 engine(rd());
+      engine.seed(seed);
+
+      // Uniform integer distribution between 1 and 6 (like a die roll)
+      std::uniform_int_distribution<int> randomMovesGen(0, EnumToInt(eCubeMove::NumMoves) - 1);
+
+      // Generate random sequence of moves.
+      for (int j = 0; j < numMoves; j++)
+      {
+         scramble.push_back(static_cast<eCubeMove>(randomMovesGen(engine)));
+      }
+   }
 
 private:
    CubeFaceData mCube;

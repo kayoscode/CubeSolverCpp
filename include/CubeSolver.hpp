@@ -19,6 +19,116 @@ constexpr int GetNumEdgeTypes()
    return static_cast<int>(eFaceEdgePos::NumEdges);
 }
 
+/**
+ * @brief      Stores a list of moves. Abstracts away logic allowing the moves to be 
+ * simulated but not executed depending on the state of the cube. This simplifies the logic
+ * in certain places during solve;
+ */
+class CubeMoveList
+{
+public:
+   CubeMoveList(Cube& cube) : mCube(cube)
+   {
+   }
+
+   /**
+    * @brief      Simultes the moves, but doesn't append to the move list yet.
+    *
+    * @param      cube   The cube
+    * @param[in]  moves  The moves
+    */
+   void PushMoves(const std::vector<eCubeMove>& moves, bool acceptMoves = false)
+   {
+      for (const auto& move : moves)
+      {
+         mPendingMoves.push_back(move);
+         mCube.ExecuteMove(move);
+      }
+
+      if (acceptMoves)
+      {
+         AcceptPendingMoves();
+      }
+   }
+
+   /**
+    * @brief      Simulates the move, but doesn't push it to the move list yet.
+    *
+    * @param      cube  The cube
+    * @param[in]  move  The move
+    */
+   void PushMove(eCubeMove move, bool acceptMoves = false)
+   {
+      mPendingMoves.push_back(move);
+      mCube.ExecuteMove(move);
+
+      if (acceptMoves)
+      {
+         AcceptPendingMoves();
+      }
+   }
+
+   /**
+    * @brief      Pushes all pending moves to the moves list.
+    */
+   void AcceptPendingMoves()
+   {
+      mMoves.insert(mMoves.end(), mPendingMoves.begin(), mPendingMoves.end());
+      mPendingMoves.clear();
+   }
+
+   /**
+    * @brief      Reverses the pending moves on the cube and doesn't add them to the move list. 
+    */
+   void RejectPendingMoves()
+   {
+      std::vector<eCubeMove> reverseMoves;
+      Cube::ReverseMoves(mPendingMoves, reverseMoves);
+      mCube.ExecuteMoves(reverseMoves.data(), reverseMoves.size());
+   }
+
+   /**
+    * @brief      Returns the list of moves applied to the cube.
+    * Failing to accept or reject the pending moves before calling this is seen as a bug.
+    * Although this reference is still valid after calling since we don't copy, it is recommended
+    * to discard it immediately after use and call it again when it's needed later.
+    * 
+    * @return     The moves.
+    */
+   const std::vector<eCubeMove>& GetMoves()
+   {
+      // Assert false to catch issues where we didn't accept or reject moves leaving the cube
+      // in an incorrect state.
+      assert(mPendingMoves.size() == 0 && "There are pending moves.");
+      return mMoves;
+   }
+
+   /**
+    * @brief      Prints the list of moves to the output stream.
+    * @param      outputStream  The stream to write data to
+    */
+   void SerializeMoves(std::ostream& outputStream)
+   {
+      assert(mPendingMoves.size() == 0 && "There shuold be no pending moves.");
+      mCube.SerializeMoveList(outputStream, mMoves.data(), mMoves.size());
+   }
+
+   int GetNumMoves()
+   {
+      return mMoves.size();
+   }
+
+   int GetNumPendingMoves()
+   {
+      return mPendingMoves.size();
+   }
+
+private:
+   Cube& mCube;
+   std::vector<eCubeMove> mMoves;
+   std::vector<eCubeMove> mPendingMoves;
+};
+
 class CubeSolveUtils
 {
 public:

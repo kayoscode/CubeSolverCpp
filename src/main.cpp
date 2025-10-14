@@ -9,7 +9,11 @@ using namespace cube;
 int main()
 {
    std::vector<eCubeMove> moves;
-   Cube::ParseMoveNotation("R' u R' u'", moves);
+   int seed = time(0);
+   Cube::GenerateScramble(moves, 20, seed);
+   std::cout << "Seed: " << seed << "\n" << "Scramble: ";
+   Cube::SerializeMoveList(std::cout, moves.data(), moves.size());
+   std::cout << "\n";
 
    Cube cube;
    cube.ExecuteMoves(moves.data(), moves.size());

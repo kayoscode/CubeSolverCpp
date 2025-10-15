@@ -2,6 +2,7 @@
 #include "CubeSolver.hpp"
 
 #include <cassert>
+#include <cinttypes>
 #include <map>
 #include <vector>
 
@@ -332,15 +333,41 @@ namespace cube
       }
    }
 
+   eCubeColor CubeSolveUtils::GetEdgeColor(Cube& cube, eCubeFace face, eFaceEdgePos edgePos)
+   {
+      int x, y;
+      GetEdgePosition(edgePos, x, y);
+      return cube.GetState(face, x, y);
+   }
+
    eCubeColor CubeSolveUtils::GetAdjacentEdgeColor(Cube& cube, eCubeFace face, eFaceEdgePos edgePos)
    {
-      int adjacentX, adjacentY;
       eCubeFace adjacentFace;
       eFaceEdgePos adjacentEdgePos;
-      CubeSolveUtils::GetAdjacentEdge(face, edgePos, adjacentFace, adjacentEdgePos);
-      CubeSolveUtils::GetEdgePosition(adjacentEdgePos, adjacentX, adjacentY);
+      GetAdjacentEdge(face, edgePos, adjacentFace, adjacentEdgePos);
+      return GetEdgeColor(cube, adjacentFace, adjacentEdgePos);
+   }
 
-      return cube.GetState(adjacentFace, adjacentX, adjacentY);
+   eCubeColor CubeSolveUtils::GetCornerColor(Cube& cube, eCubeFace face, eFaceCornerPos corner)
+   {
+      int x, y;
+      GetCornerPosition(corner, x, y);
+      return cube.GetState(face, x, y);
+   }
+
+   void CubeSolveUtils::GetCornerColors(Cube& cube, const tCornerDescriptor& cornerDescriptor, 
+      eCubeColor& yColor, eCubeColor& xColor, eCubeColor& zColor)
+   {
+      yColor = GetCornerColor(cube, cornerDescriptor.FaceY, cornerDescriptor.CornerY);
+      xColor = GetCornerColor(cube, cornerDescriptor.FaceX, cornerDescriptor.CornerX);
+      zColor = GetCornerColor(cube, cornerDescriptor.FaceZ, cornerDescriptor.CornerZ);
+   }
+
+   void CubeSolveUtils::GetCornerColors(Cube& cube, eCubeFace face, eFaceCornerPos corner,
+      eCubeColor& yColor, eCubeColor& xColor, eCubeColor& zColor)
+   {
+      tCornerDescriptor cornerDescriptor = GetCornerDescriptor(face, corner);
+      GetCornerColors(cube, cornerDescriptor, yColor, xColor, zColor);
    }
 
    bool CubeSolveUtils::IsEdgeInPosition(Cube& cube, eCubeFace face, eFaceEdgePos edgePos, 
@@ -373,7 +400,7 @@ namespace cube
     * @param[in]  face      The face
     * @param      moveList  The move list
     */
-   static void RotateSideFaceToFront(Cube& cube, eCubeFace face, CubeMoveList& moveList, bool acceptMoves)
+   static void RotateSideFaceToFront(Cube& cube, eCubeFace face, CubeMoveList& moveList)
    {
       if (face != eCubeFace::Front)
       {
@@ -396,7 +423,7 @@ namespace cube
             break;
          }
 
-         moveList.PushMove(orientingMove, acceptMoves);
+         moveList.PushMove(orientingMove);
       }
    }
 
@@ -408,7 +435,7 @@ namespace cube
     * @param[in]  face      The face
     * @param      moveList  The move list
     */
-   static void RotateSideFaceToRight(Cube& cube, eCubeFace face, CubeMoveList& moveList, bool acceptMoves)
+   static void RotateSideFaceToRight(Cube& cube, eCubeFace face, CubeMoveList& moveList)
    {
       if (face != eCubeFace::Right)
       {
@@ -431,7 +458,7 @@ namespace cube
             break;
          }
 
-         moveList.PushMove(orientingMove, acceptMoves);
+         moveList.PushMove(orientingMove);
       }
    }
 
@@ -776,7 +803,7 @@ namespace cube
       // to the top and rotating it around to this face.
 
       // First, bring the face to the right for simpler logic.
-      RotateSideFaceToRight(cube, face, moveList, false);
+      RotateSideFaceToRight(cube, face, moveList);
 
       if (SolveCrossEdgeInBottomMiddle(cube, moveList))
       {
@@ -880,6 +907,178 @@ namespace cube
    #pragma endregion // Cross
 
    #pragma region F2L
+
+   /**
+    * @return      Returns the face corner relative to sideFace1 such that the corner is adjacent to 
+    */
+   static eFaceCornerPos GetF2lPairCorner(Cube& cube, eCubeFace sideFace1, eCubeFace sideFace2)
+   {
+      assert(sideFace1 != eCubeFace::Top && sideFace1 != eCubeFace::Bottom);
+      assert(sideFace2 != eCubeFace::Top && sideFace2 != eCubeFace::Bottom);
+      assert(sideFace1 != sideFace2);
+      assert(GetOppositeFace(sideFace1) != sideFace2);
+
+      if (sideFace1 == eCubeFace::Front)
+      {
+         if (sideFace2 == eCubeFace::Left)
+         {
+            return eFaceCornerPos::BottomLeft;
+         }
+         else if(sideFace2 == eCubeFace::Right)
+         {
+            return eFaceCornerPos::BottomRight;
+         }
+      }
+      else if (sideFace1 == eCubeFace::Back)
+      {
+         if (sideFace2 == eCubeFace::Left)
+         {
+            return eFaceCornerPos::BottomRight;
+         }
+         else if(sideFace2 == eCubeFace::Right)
+         {
+            return eFaceCornerPos::BottomLeft;
+         }
+      }
+      else if (sideFace1 == eCubeFace::Left)
+      {
+         if (sideFace2 == eCubeFace::Front)
+         {
+            return eFaceCornerPos::BottomRight;
+         }
+         else if(sideFace2 == eCubeFace::Back)
+         {
+            return eFaceCornerPos::BottomLeft;
+         }
+      }
+      else if (sideFace1 == eCubeFace::Right)
+      {
+         if (sideFace2 == eCubeFace::Front)
+         {
+            return eFaceCornerPos::BottomLeft;
+         }
+         else if(sideFace2 == eCubeFace::Back)
+         {
+            return eFaceCornerPos::BottomRight;
+         }
+      }
+
+      // Invalid case.
+      assert(false);
+      return eFaceCornerPos::TopLeft;
+   }
+
+   static eFaceEdgePos GetF2lEdgePair(Cube& cube, eCubeFace sideFace1, eCubeFace sideFace2)
+   {
+      assert(sideFace1 != eCubeFace::Top && sideFace1 != eCubeFace::Bottom);
+      assert(sideFace2 != eCubeFace::Top && sideFace2 != eCubeFace::Bottom);
+      assert(sideFace1 != sideFace2);
+      assert(GetOppositeFace(sideFace1) != sideFace2);
+
+      if (sideFace1 == eCubeFace::Front)
+      {
+         if (sideFace2 == eCubeFace::Left)
+         {
+            return eFaceEdgePos::LeftEdge;
+         }
+         else if(sideFace2 == eCubeFace::Right)
+         {
+            return eFaceEdgePos::RightEdge;
+         }
+      }
+      else if (sideFace1 == eCubeFace::Back)
+      {
+         if (sideFace2 == eCubeFace::Left)
+         {
+            return eFaceEdgePos::RightEdge;
+         }
+         else if(sideFace2 == eCubeFace::Right)
+         {
+            return eFaceEdgePos::LeftEdge;
+         }
+      }
+      else if (sideFace1 == eCubeFace::Left)
+      {
+         if (sideFace2 == eCubeFace::Front)
+         {
+            return eFaceEdgePos::RightEdge;
+         }
+         else if(sideFace2 == eCubeFace::Back)
+         {
+            return eFaceEdgePos::LeftEdge;
+         }
+      }
+      else if (sideFace1 == eCubeFace::Right)
+      {
+         if (sideFace2 == eCubeFace::Front)
+         {
+            return eFaceEdgePos::LeftEdge;
+         }
+         else if(sideFace2 == eCubeFace::Back)
+         {
+            return eFaceEdgePos::RightEdge;
+         }
+      }
+
+      // Invalid case.
+      assert(false);
+      return eFaceEdgePos::TopEdge;
+   }
+
+   static bool IsF2lPairSolved(Cube& cube, eCubeFace sideFace1, eCubeFace sideFace2)
+   {
+      eCubeAxis sideFace1Axis = CubeSolveUtils::GetAxisForFace(sideFace1);
+      eCubeAxis sideFace2Axis = CubeSolveUtils::GetAxisForFace(sideFace2);
+
+      assert(sideFace1Axis == eCubeAxis::XAxis || sideFace1Axis == eCubeAxis::ZAxis);
+      assert(sideFace2Axis == eCubeAxis::XAxis || sideFace2Axis == eCubeAxis::ZAxis);
+      assert(sideFace1Axis != sideFace2Axis);
+
+      eCubeColor face1Color = cube.ColorOfFace(sideFace1);
+      eCubeColor face2Color = cube.ColorOfFace(sideFace2);
+      eFaceCornerPos f2lCorner = GetF2lPairCorner(cube, sideFace1, sideFace2);
+      eFaceEdgePos f2lEdge = GetF2lEdgePair(cube, sideFace1, sideFace2);
+
+      bool isEdgeInverted;
+      bool isEdgeInPosition = CubeSolveUtils::IsEdgeInPosition(cube, sideFace1, f2lEdge, face1Color, face2Color, isEdgeInverted);
+
+      // Check to see if both the edge and corner are in the correct positions.
+      if (!isEdgeInverted && isEdgeInPosition)
+      {
+         eCubeColor yColor, xColor, zColor;
+         CubeSolveUtils::GetCornerColors(cube, sideFace1, f2lCorner, yColor, xColor, zColor);
+
+         if (yColor == BottomColor)
+         {
+            if (sideFace1Axis == eCubeAxis::XAxis)
+            {
+               return xColor == face1Color && zColor == face2Color;
+            }
+            else if (sideFace1Axis == eCubeAxis::ZAxis)
+            {
+               return zColor == face1Color && xColor == face2Color;
+            }
+         }
+      }
+
+      return false;
+   }
+
+   /**
+    * @brief      Returns true if something had to be done to solve f2l assuming the given face
+    * is at the right.
+    *
+    * @param      cube       The cube
+    * @param[in]  rightFace  The right face
+    *
+    * @return     { description_of_the_return_value }
+    */
+   static bool SolveFirstTwoLayers(Cube& cube, eCubeFace rightFace, CubeMoveList& moveList)
+   {
+      RotateSideFaceToRight(cube, rightFace, moveList);
+
+      return false;
+   }
 
    static bool SolveFirstTwoLayers(Cube& cube, std::ostream& outputStream, bool addSeparators)
    {

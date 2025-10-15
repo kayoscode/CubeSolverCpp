@@ -21,6 +21,13 @@ enum class eFaceCornerPos
    BottomRight
 };
 
+enum class eCubeAxis
+{
+   YAxis,
+   XAxis,
+   ZAxis
+};
+
 constexpr int GetNumEdgeTypes() 
 {
    return static_cast<int>(eFaceEdgePos::BottomEdge) + 1;
@@ -194,6 +201,17 @@ public:
    static eCubeColor GetAdjacentEdgeColor(Cube& cube, eCubeFace face, eFaceEdgePos edgePos);
 
    /**
+    * @brief      Returns the color of the given edge on the cube.
+    *
+    * @param      cube     The cube
+    * @param[in]  face     The face
+    * @param[in]  edgePos  The edge position
+    *
+    * @return     The edge color.
+    */
+   static eCubeColor GetEdgeColor(Cube& cube, eCubeFace face, eFaceEdgePos edgePos);
+
+   /**
     * @brief      Finds the coords on the face correlating with the given edge position.
     *
     * @param[in]  edge     The edge
@@ -212,6 +230,33 @@ public:
    static void GetCornerPosition(eFaceCornerPos corner, int& resultX, int& resultY);
 
    /**
+    * @return     The color of the cube at the given corner and face.
+    */
+   static eCubeColor GetCornerColor(Cube& cube, eCubeFace face, eFaceCornerPos corner);
+
+   /**
+    * @brief      Finds the colors of a corner descriptor.
+    *
+    * @param[in]  cornerDescriptor  The corner descriptor
+    * @param[in]  yColor            The y color
+    * @param[in]  xColor            The color
+    * @param[in]  zColor            The z color
+    */
+   static void GetCornerColors(Cube& cube, const tCornerDescriptor& cornerDescriptor, 
+      eCubeColor& yColor, eCubeColor& xColor, eCubeColor& zColor);
+
+   /**
+    * @brief      Finds the colors associated with a face and corner position.
+    *
+    * @param[in]  cornerDescriptor  The corner descriptor
+    * @param[in]  yColor            The y color
+    * @param[in]  xColor            The color
+    * @param[in]  zColor            The z color
+    */
+   static void GetCornerColors(Cube& cube, eCubeFace face, eFaceCornerPos corner,
+      eCubeColor& yColor, eCubeColor& xColor, eCubeColor& zColor);
+
+   /**
     * @brief      Determines if the edge is in the given position on the given face.
     * isInverted is set to false if it found the edge, but color 1 is on the given face and color 2 is
     * on the ajacent face. It's set to true if color1 is on the ajacent face and color2 is on the face.
@@ -227,6 +272,30 @@ public:
     */
    static bool IsEdgeInPosition(Cube& cube, eCubeFace face, eFaceEdgePos edgePos, 
       eCubeColor color1, eCubeColor color2, bool& isInverted);
+
+   /**
+    * @return     The axis associated with the given face.
+    */
+   static eCubeAxis GetAxisForFace(eCubeFace face)
+   {
+      switch (face)
+      {
+      case cube::eCubeFace::Front:
+      case cube::eCubeFace::Back:
+         return eCubeAxis::ZAxis;
+         break;
+      case cube::eCubeFace::Left:
+      case cube::eCubeFace::Right:
+         return eCubeAxis::XAxis;
+         break;
+      case cube::eCubeFace::Top:
+      case cube::eCubeFace::Bottom:
+         return eCubeAxis::YAxis;
+         break;
+      default:
+         assert(false);
+      }
+   }
 };
 
 class CubeSolver

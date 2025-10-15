@@ -169,7 +169,7 @@ public:
     * @param[in]  corner            The corner
     * @param      resultDescriptor  The result descriptor
     */
-   static void GetCornerDescriptor(eCubeFace face, eFaceCornerPos corner, tCornerDescriptor& resultDescriptor);
+   static tCornerDescriptor GetCornerDescriptor(eCubeFace face, eFaceCornerPos corner);
 
    /**
     * @brief      Finds the postion on the cube where the adjacent edge can be found.
@@ -201,6 +201,15 @@ public:
     * @param      resultY  The result y
     */
    static void GetEdgePosition(eFaceEdgePos edge, int& resultX, int& resultY);
+
+   /**
+    * @brief      Returns the position on the face given the corner position enum.
+    *
+    * @param[in]  corner   The corner
+    * @param      resultX  The result x
+    * @param      resultY  The result y
+    */
+   static void GetCornerPosition(eFaceCornerPos corner, int& resultX, int& resultY);
 
    /**
     * @brief      Determines if the edge is in the given position on the given face.

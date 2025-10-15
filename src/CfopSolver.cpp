@@ -45,17 +45,17 @@ namespace cube
    {
       switch (face)
       {
-      case cube::eCubeFace::Front:
+      case eCubeFace::Front:
          return eCubeFace::Back;
-      case cube::eCubeFace::Back:
+      case eCubeFace::Back:
          return eCubeFace::Front;
-      case cube::eCubeFace::Left:
+      case eCubeFace::Left:
          return eCubeFace::Right;
-      case cube::eCubeFace::Right:
+      case eCubeFace::Right:
          return eCubeFace::Left;
-      case cube::eCubeFace::Top:
+      case eCubeFace::Top:
          return eCubeFace::Bottom;
-      case cube::eCubeFace::Bottom:
+      case eCubeFace::Bottom:
          return eCubeFace::Top;
       default:
          assert(false);
@@ -63,40 +63,136 @@ namespace cube
       }
    }
 
-   void CubeSolveUtils::GetCornerDescriptor(eCubeFace face, eFaceCornerPos corner, 
-      tCornerDescriptor& cornerDescriptor)
+   tCornerDescriptor CubeSolveUtils::GetCornerDescriptor(eCubeFace face, eFaceCornerPos corner)
    {
-      // TODO: I want to specify the corner descriptors for each face and corner position, but since corners
-      // only have 8 positions, I can specify the front and the back corners and generate the rest
-      // at runtime statically. Lets do that. Then I can use it to generate moves to solve the corners.
-      std::map<eCubeFace, std::map<eFaceCornerPos, tCornerDescriptor>> cornerDescriptorMappings
+      switch (face)
       {
+      case eCubeFace::Front:
+         switch (corner)
          {
-            eCubeFace::Front,
-            {
-               { 
-                  eFaceCornerPos::TopLeft, tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomLeft, 
-                                                             eCubeFace::Left, eFaceCornerPos::TopRight,
-                                                             eCubeFace::Front, eFaceCornerPos::TopLeft) 
-               },
-               {
-                  eFaceCornerPos::TopRight, tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomRight, 
-                                                              eCubeFace::Right, eFaceCornerPos::TopLeft,
-                                                              eCubeFace::Front, eFaceCornerPos::TopRight) 
-               },
-               {
-                  eFaceCornerPos::BottomLeft, tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopLeft, 
-                                                                eCubeFace::Left, eFaceCornerPos::BottomRight,
-                                                                eCubeFace::Front, eFaceCornerPos::BottomLeft) 
-               },
-               {
-                  eFaceCornerPos::BottomRight, tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopRight, 
-                                                                 eCubeFace::Right, eFaceCornerPos::BottomLeft,
-                                                                 eCubeFace::Front, eFaceCornerPos::BottomRight) 
-               },
-            }
+         case eFaceCornerPos::TopLeft:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomLeft,
+                                     eCubeFace::Left, eFaceCornerPos::TopRight,
+                                     face, corner);
+         case eFaceCornerPos::TopRight:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomRight,
+                                     eCubeFace::Right, eFaceCornerPos::TopLeft,
+                                     face, corner);
+         case eFaceCornerPos::BottomLeft:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopLeft,
+                                     eCubeFace::Left, eFaceCornerPos::BottomRight,
+                                     face, corner);
+         case eFaceCornerPos::BottomRight:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopRight,
+                                     eCubeFace::Right, eFaceCornerPos::BottomLeft,
+                                     face, corner);
          }
-      };
+      case eCubeFace::Back:
+         switch (corner)
+         {
+         case eFaceCornerPos::TopLeft:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::TopRight,
+                                     eCubeFace::Right, eFaceCornerPos::TopRight,
+                                     face, corner);
+         case eFaceCornerPos::TopRight:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::TopLeft,
+                                     eCubeFace::Left, eFaceCornerPos::TopLeft,
+                                     face, corner);
+         case eFaceCornerPos::BottomLeft:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::BottomRight,
+                                     eCubeFace::Right, eFaceCornerPos::BottomRight,
+                                     face, corner);
+         case eFaceCornerPos::BottomRight:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::BottomLeft,
+                                     eCubeFace::Left, eFaceCornerPos::BottomLeft,
+                                     face, corner);
+         }
+      case eCubeFace::Left:
+         switch (corner)
+         {
+         case eFaceCornerPos::TopLeft:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::TopLeft,
+                                     face, corner,
+                                     eCubeFace::Back, eFaceCornerPos::TopRight);
+         case eFaceCornerPos::TopRight:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomLeft,
+                                     face, corner,
+                                     eCubeFace::Front, eFaceCornerPos::TopLeft);
+         case eFaceCornerPos::BottomLeft:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::BottomLeft,
+                                     face, corner,
+                                     eCubeFace::Back, eFaceCornerPos::BottomRight);
+         case eFaceCornerPos::BottomRight:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopLeft,
+                                     face, corner,
+                                     eCubeFace::Front, eFaceCornerPos::BottomLeft);
+         }
+      case eCubeFace::Right:
+         switch (corner)
+         {
+         case eFaceCornerPos::TopLeft:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::BottomRight,
+                                     face, corner,
+                                     eCubeFace::Front, eFaceCornerPos::TopRight);
+         case eFaceCornerPos::TopRight:
+            return tCornerDescriptor(eCubeFace::Top, eFaceCornerPos::TopRight,
+                                     face, corner,
+                                     eCubeFace::Back, eFaceCornerPos::TopLeft);
+         case eFaceCornerPos::BottomLeft:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::TopRight,
+                                     face, corner,
+                                     eCubeFace::Front, eFaceCornerPos::BottomRight);
+         case eFaceCornerPos::BottomRight:
+            return tCornerDescriptor(eCubeFace::Bottom, eFaceCornerPos::BottomRight,
+                                     face, corner,
+                                     eCubeFace::Back, eFaceCornerPos::BottomLeft);
+         }
+      case eCubeFace::Top: 
+         switch (corner)
+         {
+         case eFaceCornerPos::TopLeft:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Left, eFaceCornerPos::TopLeft,
+                                     eCubeFace::Back, eFaceCornerPos::TopRight);
+         case eFaceCornerPos::TopRight:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Right, eFaceCornerPos::TopRight,
+                                     eCubeFace::Back, eFaceCornerPos::TopLeft);
+         case eFaceCornerPos::BottomLeft:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Left, eFaceCornerPos::TopRight,
+                                     eCubeFace::Front, eFaceCornerPos::TopLeft);
+         case eFaceCornerPos::BottomRight:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Right, eFaceCornerPos::TopLeft,
+                                     eCubeFace::Front, eFaceCornerPos::TopRight);
+         }
+      case eCubeFace::Bottom:
+         switch (corner)
+         {
+         case eFaceCornerPos::TopLeft:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Left, eFaceCornerPos::BottomRight,
+                                     eCubeFace::Front, eFaceCornerPos::BottomLeft);
+         case eFaceCornerPos::TopRight:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Right, eFaceCornerPos::BottomLeft,
+                                     eCubeFace::Front, eFaceCornerPos::BottomRight);
+         case eFaceCornerPos::BottomLeft:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Left, eFaceCornerPos::BottomLeft,
+                                     eCubeFace::Back, eFaceCornerPos::BottomRight);
+         case eFaceCornerPos::BottomRight:
+            return tCornerDescriptor(face, corner,
+                                     eCubeFace::Right, eFaceCornerPos::BottomRight,
+                                     eCubeFace::Back, eFaceCornerPos::BottomLeft);
+         }
+      default:
+         assert(false);
+         // Dummy return value.
+         return tCornerDescriptor(face, corner, face, corner, face, corner);
+         break;
+      }
    }
 
    /**
@@ -123,15 +219,6 @@ namespace cube
             case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::TopEdge }; break;
          }
          break;
-      case eCubeFace::Left:
-         switch (edge)
-         {
-            case eFaceEdgePos::TopEdge: result = { eCubeFace::Top, eFaceEdgePos::LeftEdge }; break;
-            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Back, eFaceEdgePos::RightEdge }; break;
-            case eFaceEdgePos::RightEdge: result = { eCubeFace::Front, eFaceEdgePos::LeftEdge }; break;
-            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::LeftEdge }; break;
-         }
-         break;
       case eCubeFace::Back:
          switch (edge)
          {
@@ -139,6 +226,15 @@ namespace cube
             case eFaceEdgePos::LeftEdge: result = { eCubeFace::Right, eFaceEdgePos::RightEdge }; break;
             case eFaceEdgePos::RightEdge: result = { eCubeFace::Left, eFaceEdgePos::LeftEdge }; break;
             case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::BottomEdge }; break;
+         }
+         break;
+      case eCubeFace::Left:
+         switch (edge)
+         {
+            case eFaceEdgePos::TopEdge: result = { eCubeFace::Top, eFaceEdgePos::LeftEdge }; break;
+            case eFaceEdgePos::LeftEdge: result = { eCubeFace::Back, eFaceEdgePos::RightEdge }; break;
+            case eFaceEdgePos::RightEdge: result = { eCubeFace::Front, eFaceEdgePos::LeftEdge }; break;
+            case eFaceEdgePos::BottomEdge: result = { eCubeFace::Bottom, eFaceEdgePos::LeftEdge }; break;
          }
          break;
       case eCubeFace::Right:
@@ -210,6 +306,32 @@ namespace cube
       }
    }
 
+   void CubeSolveUtils::GetCornerPosition(eFaceCornerPos corner, int& resultX, int& resultY)
+   {
+      switch (corner)
+      {
+      case eFaceCornerPos::TopLeft:
+         resultX = 0;
+         resultY = 0;
+         break;
+      case eFaceCornerPos::TopRight:
+         resultX = 2;
+         resultY = 0;
+         break;
+      case eFaceCornerPos::BottomLeft:
+         resultX = 0;
+         resultY = 2;
+         break;
+      case eFaceCornerPos::BottomRight:
+         resultX = 2;
+         resultY = 2;
+         break;
+      default:
+         assert(false);
+         break;
+      }
+   }
+
    eCubeColor CubeSolveUtils::GetAdjacentEdgeColor(Cube& cube, eCubeFace face, eFaceEdgePos edgePos)
    {
       int adjacentX, adjacentY;
@@ -256,19 +378,19 @@ namespace cube
 
          switch (bottomColorFace)
          {
-         case cube::eCubeFace::Front:
+         case eCubeFace::Front:
             orientingMove = eCubeMove::XPrime;
             break;
-         case cube::eCubeFace::Left:
+         case eCubeFace::Left:
             orientingMove = eCubeMove::ZPrime;
             break;
-         case cube::eCubeFace::Right:
+         case eCubeFace::Right:
             orientingMove = eCubeMove::Z;
             break;
-         case cube::eCubeFace::Back:
+         case eCubeFace::Back:
             orientingMove = eCubeMove::X;
             break;
-         case cube::eCubeFace::Top:
+         case eCubeFace::Top:
             orientingMove = eCubeMove::X2;
             break;
          default:
@@ -306,13 +428,13 @@ namespace cube
 
          switch (face)
          {
-         case cube::eCubeFace::Left:
+         case eCubeFace::Left:
             orientingMove = eCubeMove::YPrime;
             break;
-         case cube::eCubeFace::Right:
+         case eCubeFace::Right:
             orientingMove = eCubeMove::Y;
             break;
-         case cube::eCubeFace::Back:
+         case eCubeFace::Back:
             orientingMove = eCubeMove::Y2;
             break;
          default:
@@ -341,13 +463,13 @@ namespace cube
 
          switch (face)
          {
-         case cube::eCubeFace::Front:
+         case eCubeFace::Front:
             orientingMove = eCubeMove::YPrime;
             break;
-         case cube::eCubeFace::Back:
+         case eCubeFace::Back:
             orientingMove = eCubeMove::Y;
             break;
-         case cube::eCubeFace::Left:
+         case eCubeFace::Left:
             orientingMove = eCubeMove::Y2;
             break;
          default:
@@ -399,16 +521,16 @@ namespace cube
          {
             switch (edgePos)
             {
-            case cube::eFaceEdgePos::TopEdge:
+            case eFaceEdgePos::TopEdge:
                // Simple, do a U2.
                moveList.PushMove(eCubeMove::Up2);
                break;
-            case cube::eFaceEdgePos::BottomEdge:
+            case eFaceEdgePos::BottomEdge:
                // Edge cannot be solved, L2 U2
                moveList.PushMove(eCubeMove::Left2);
                moveList.PushMove(eCubeMove::Up2);
                break;
-            case cube::eFaceEdgePos::LeftEdge:
+            case eFaceEdgePos::LeftEdge:
                // We have to be careful to not mess up the edge if it's already solved.
                moveList.PushMove(eCubeMove::Left);
                moveList.PushMove(eCubeMove::Up2);
@@ -417,7 +539,7 @@ namespace cube
                   moveList.PushMove(eCubeMove::LeftPrime);
                }
                break;
-            case cube::eFaceEdgePos::RightEdge:
+            case eFaceEdgePos::RightEdge:
                moveList.PushMove(eCubeMove::LeftPrime);
                moveList.PushMove(eCubeMove::Up2);
                if (isLeftFaceSolvedBefore)

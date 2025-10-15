@@ -366,53 +366,6 @@ namespace cube
       return false;
    }
 
-   static bool OrientCube(Cube& cube, std::ostream& outputStream, bool useSeparators)
-   {
-      // We want white on the bottom.
-      CubeMoveList moveList(cube);
-
-      if (cube.ColorOfFace(eCubeFace::Bottom) != BottomColor)
-      {
-         eCubeFace bottomColorFace = cube.FaceOfColor(BottomColor);
-         eCubeMove orientingMove;
-
-         switch (bottomColorFace)
-         {
-         case eCubeFace::Front:
-            orientingMove = eCubeMove::XPrime;
-            break;
-         case eCubeFace::Left:
-            orientingMove = eCubeMove::ZPrime;
-            break;
-         case eCubeFace::Right:
-            orientingMove = eCubeMove::Z;
-            break;
-         case eCubeFace::Back:
-            orientingMove = eCubeMove::X;
-            break;
-         case eCubeFace::Top:
-            orientingMove = eCubeMove::X2;
-            break;
-         default:
-            // Error case?
-            orientingMove = eCubeMove::NumMoves;
-            break;
-         }
-
-         moveList.PushMove(orientingMove, true);
-      }
-
-      if (moveList.GetNumMoves() > 0)
-      {
-         outputStream << "Orienting: ";
-         moveList.SerializeMoves(outputStream);
-         outputStream << "\n";
-         return true;
-      }
-
-      return false;
-   }
-
    /**
     * @brief      Rotates a face that appears on the front back left or right of the cube to the front.
     *
@@ -482,10 +435,59 @@ namespace cube
       }
    }
 
+   static bool OrientCube(Cube& cube, std::ostream& outputStream, bool useSeparators)
+   {
+      // We want white on the bottom.
+      CubeMoveList moveList(cube);
+
+      if (cube.ColorOfFace(eCubeFace::Bottom) != BottomColor)
+      {
+         eCubeFace bottomColorFace = cube.FaceOfColor(BottomColor);
+         eCubeMove orientingMove;
+
+         switch (bottomColorFace)
+         {
+         case eCubeFace::Front:
+            orientingMove = eCubeMove::XPrime;
+            break;
+         case eCubeFace::Left:
+            orientingMove = eCubeMove::ZPrime;
+            break;
+         case eCubeFace::Right:
+            orientingMove = eCubeMove::Z;
+            break;
+         case eCubeFace::Back:
+            orientingMove = eCubeMove::X;
+            break;
+         case eCubeFace::Top:
+            orientingMove = eCubeMove::X2;
+            break;
+         default:
+            // Error case?
+            orientingMove = eCubeMove::NumMoves;
+            break;
+         }
+
+         moveList.PushMove(orientingMove, true);
+      }
+
+      if (moveList.GetNumMoves() > 0)
+      {
+         outputStream << "Orienting: ";
+         moveList.SerializeMoves(outputStream);
+         outputStream << "\n";
+         return true;
+      }
+
+      return false;
+   }
+
+   #pragma region Cross
+
    /**
     * @brief      Returns true if the edge on the existing face is solved. False otherwise
     */
-   static bool IsFaceEdgeSolved(Cube& cube, eCubeFace face)
+   static bool IsFaceCrossSolved(Cube& cube, eCubeFace face)
    {
       eCubeColor faceColor = cube.ColorOfFace(face);
       bool isInverted;
@@ -503,7 +505,7 @@ namespace cube
     * @param      moveList  The move list
     * @return     True if the edge was found on the left face and it's now on the top of the right face.
     */
-   static void SolveEdgeOnLeftFace(Cube& cube, CubeMoveList& moveList)
+   static void SolveCrossEdgeOnLeftFace(Cube& cube, CubeMoveList& moveList)
    {
       // Just bring the edge to the top edge, then do a U2.
       // We know the opposite face is the left
@@ -516,7 +518,7 @@ namespace cube
          bool edgeInPosition = CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Left, edgePos, edgeColor, 
             BottomColor, isInverted);
 
-         bool isLeftFaceSolvedBefore = IsFaceEdgeSolved(cube, eCubeFace::Left);
+         bool isLeftFaceSolvedBefore = IsFaceCrossSolved(cube, eCubeFace::Left);
          if (edgeInPosition)
          {
             switch (edgePos)
@@ -565,7 +567,7 @@ namespace cube
     * @param      cube      The cube
     * @param      moveList  The move list
     */
-   static void SolveEdgeOnRightFace(Cube& cube, CubeMoveList& moveList)
+   static void SolveCrossEdgeOnRightFace(Cube& cube, CubeMoveList& moveList)
    {
       eCubeColor color = cube.ColorOfFace(eCubeFace::Right);
 
@@ -652,7 +654,7 @@ namespace cube
     *
     * @return     { description_of_the_return_value }
     */
-   static bool SolveEdgeInBottomMiddle(Cube& cube, CubeMoveList& moveList)
+   static bool SolveCrossEdgeInBottomMiddle(Cube& cube, CubeMoveList& moveList)
    {
       eCubeColor color = cube.ColorOfFace(eCubeFace::Right);
 
@@ -702,7 +704,7 @@ namespace cube
     *
     * @return     { description_of_the_return_value }
     */
-   static bool SolveEdgeInTopMiddle(Cube& cube, CubeMoveList& moveList)
+   static bool SolveCrossEdgeInTopMiddle(Cube& cube, CubeMoveList& moveList)
    {
       eCubeColor color = cube.ColorOfFace(eCubeFace::Right);
 
@@ -716,7 +718,7 @@ namespace cube
          }
          else
          {
-            bool wasBackSolved = IsFaceEdgeSolved(cube, eCubeFace::Back);
+            bool wasBackSolved = IsFaceCrossSolved(cube, eCubeFace::Back);
             moveList.PushMoves({ eCubeMove::BackPrime, eCubeMove::Right });
 
             if (wasBackSolved)
@@ -740,7 +742,7 @@ namespace cube
          }
          else
          {
-            bool wasFrontSolved = IsFaceEdgeSolved(cube, eCubeFace::Front);
+            bool wasFrontSolved = IsFaceCrossSolved(cube, eCubeFace::Front);
             moveList.PushMoves({ eCubeMove::Front, eCubeMove::RightPrime });
 
             if (wasFrontSolved)
@@ -759,7 +761,7 @@ namespace cube
 
    static bool SolveCrossFace(Cube& cube, eCubeFace face, CubeMoveList& moveList)
    {
-      if (IsFaceEdgeSolved(cube, face))
+      if (IsFaceCrossSolved(cube, face))
       {
          // Nothing to do.
          return false;
@@ -776,26 +778,26 @@ namespace cube
       // First, bring the face to the right for simpler logic.
       RotateSideFaceToRight(cube, face, moveList, false);
 
-      if (SolveEdgeInBottomMiddle(cube, moveList))
+      if (SolveCrossEdgeInBottomMiddle(cube, moveList))
       {
          // Edge solved
-         assert(IsFaceEdgeSolved(cube, eCubeFace::Right) && "Edge should have been solved by now.");
+         assert(IsFaceCrossSolved(cube, eCubeFace::Right) && "Edge should have been solved by now.");
          return true;
       }
 
-      if (SolveEdgeInTopMiddle(cube, moveList))
+      if (SolveCrossEdgeInTopMiddle(cube, moveList))
       {
          // Edge solved
-         assert(IsFaceEdgeSolved(cube, eCubeFace::Right) && "Edge should have been solved by now.");
+         assert(IsFaceCrossSolved(cube, eCubeFace::Right) && "Edge should have been solved by now.");
          return true;
       }
 
       // Now, we know it's either on the left or the right faces, solve that case.
-      SolveEdgeOnLeftFace(cube, moveList);
-      SolveEdgeOnRightFace(cube, moveList);
+      SolveCrossEdgeOnLeftFace(cube, moveList);
+      SolveCrossEdgeOnRightFace(cube, moveList);
 
       // Make sure it's actually solved.
-      assert(IsFaceEdgeSolved(cube, eCubeFace::Right) && "Edge should have been solved by now.");
+      assert(IsFaceCrossSolved(cube, eCubeFace::Right) && "Edge should have been solved by now.");
       return true;
    }
 
@@ -806,10 +808,10 @@ namespace cube
    static void EnsureCrossSolved(Cube& cube)
    {
       assert(BottomColor == cube.ColorOfFace(eCubeFace::Bottom) && "Bottom color incorrect.");
-      assert(IsFaceEdgeSolved(cube, eCubeFace::Front) && "Front face not solved");
-      assert(IsFaceEdgeSolved(cube, eCubeFace::Back) && "Back face not solved");
-      assert(IsFaceEdgeSolved(cube, eCubeFace::Left) && "Left face not solved");
-      assert(IsFaceEdgeSolved(cube, eCubeFace::Right) && "Right face not solved");
+      assert(IsFaceCrossSolved(cube, eCubeFace::Front) && "Front face not solved");
+      assert(IsFaceCrossSolved(cube, eCubeFace::Back) && "Back face not solved");
+      assert(IsFaceCrossSolved(cube, eCubeFace::Left) && "Left face not solved");
+      assert(IsFaceCrossSolved(cube, eCubeFace::Right) && "Right face not solved");
    }
 
    static bool SolveCross(Cube& cube, std::ostream& outputStream, bool useSeparators)
@@ -875,6 +877,30 @@ namespace cube
       return false;
    }
 
+   #pragma endregion // Cross
+
+   #pragma region F2L
+
+   static bool SolveFirstTwoLayers(Cube& cube, std::ostream& outputStream, bool addSeparators)
+   {
+      CubeMoveList moveList(cube);
+
+      // TODO Ensure F2L solved
+
+      if (moveList.GetNumMoves() > 0)
+      {
+         outputStream << "F2L: ";
+         moveList.SerializeMoves(outputStream);
+         outputStream << "\n";
+         return true;
+      }
+
+      outputStream << "F2L: Already Solved";
+      return false;
+   }
+
+   #pragma endregion F2L
+
    void CfopSolver::Solve(std::ostream& outputStream)
    {
       if (OrientCube(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
@@ -883,6 +909,11 @@ namespace cube
       }
 
       if (SolveCross(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
+      {
+         mCube.Print(outputStream);
+      }
+
+      if (SolveFirstTwoLayers(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
       {
          mCube.Print(outputStream);
       }

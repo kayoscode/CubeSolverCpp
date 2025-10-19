@@ -1,7 +1,9 @@
 #include "Cube.hpp"
 #include "CubeSolver.hpp"
 
+#include <bitset>
 #include <cassert>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -10,6 +12,19 @@
    {                                                        \
       static auto result = GenerateMoves(moves)();          \
       return result;                                        \
+   }
+
+#define CUBE_OLL_DEF(name, moves, topFace, frontFace, rightFace, backFace, leftFace) \
+   static const tOLLPattern& name()                                                  \
+   {                                                                                 \
+      static std::vector<eCubeMove> solve = GenerateMoves(moves)();                  \
+      static tOLLPattern pattern(std::bitset<9>(topFace),                            \
+                                 std::bitset<3>(frontFace),                          \
+                                 std::bitset<3>(rightFace),                          \
+                                 std::bitset<3>(backFace),                           \
+                                 std::bitset<3>(leftFace),                           \
+                                 solve);                                             \
+      return pattern;                                                                \
    }
 
 namespace cube
@@ -94,96 +109,486 @@ namespace cube
    };
 
    /**
+    * @brief      Defines a pattern to match against an OLL case. Also stores the algorithm to solve
+    * it if matched.
+    */
+   struct tOLLPattern
+   {
+      /**
+       * @brief      Define your pattern as a bit set
+       *
+       * @param[in]  pattern  The pattern
+       */
+      constexpr tOLLPattern(std::bitset<9> top, std::bitset<3> front, 
+         std::bitset<3> right, std::bitset<3> back, std::bitset<3> left,
+         std::vector<eCubeMove>& moves)
+         : mTop(top.to_string()), 
+           mFront(front.to_string()), mRight(right.to_string()), mBack(back.to_string()), mLeft(left.to_string()),
+           mMoves(moves)
+      {
+         // Validate, there should be a total of 9 ones.
+         int count = 0;
+         for (int i = 0; i < mTop.size(); i++)
+         {
+            count += mTop[i] == '1';
+         }
+
+         for (int i = 0; i < mFront.size(); i++)
+         {
+            count += mFront[i] == '1';
+            count += mRight[i] == '1';
+            count += mBack[i] == '1';
+            count += mLeft[i] == '1';
+         }
+
+         assert(count == 9 && "Invalid OLL spec");
+      }
+
+      /**
+       * @param      cube  The cube
+       * @return      Returns true if the pattern matches what's on the cube.
+       */
+      bool CheckMatch(Cube& cube) const
+      {
+         eCubeColor topColor = cube.ColorOfFace(eCubeFace::Top);
+
+         // Check top.
+         for (int j = 0; j < 3; j++)
+         {
+            for (int i = 0; i < 3; i++)
+            {
+               if (!CheckSquareMatch(cube, i, j, eCubeFace::Top, topColor, mTop))
+               {
+                  return false;
+               }
+            }
+         }
+
+         // Check sides
+         for (int i = 0; i < 3; i++)
+         {
+            if (!CheckSquareMatch(cube, i, 0, eCubeFace::Front, topColor, mFront) ||
+                !CheckSquareMatch(cube, i, 0, eCubeFace::Right, topColor, mRight) ||
+                !CheckSquareMatch(cube, i, 0, eCubeFace::Back, topColor, mBack) ||
+                !CheckSquareMatch(cube, i, 0, eCubeFace::Left, topColor, mLeft))
+            {
+               return false;
+            }
+         }
+
+         return true;
+      }
+
+      /**
+       * @brief      Executes the OLL if the current orientation is an exact match with the OLL alg
+       * @param      cube      The cube
+       * @param      moveList  The move list
+       * @return     True if perform alg if matches, False otherwise.
+       */
+      bool PerformAlgIfMatches(Cube& cube, CubeMoveList& moveList) const
+      {
+         // Check the OLL for a match at the current layer.
+         if (CheckMatch(cube))
+         {
+            moveList.PushMoves(mMoves);
+            return true;
+         }
+
+         return false;
+      }
+
+   private:
+      bool CheckSquareMatch(Cube& cube, int x, int y, eCubeFace face, eCubeColor expectedColor, const std::string& pattern) const
+      {
+         if (pattern[CubeDimsToIdx(x, y)] == '1')
+         {
+            return cube.GetState(face, x, y) == expectedColor;
+         }
+         else 
+         {
+            return cube.GetState(face, x, y) != expectedColor;
+         }
+      }
+
+      const std::string mTop;
+      const std::string mFront;
+      const std::string mRight;
+      const std::string mBack;
+      const std::string mLeft;
+      const std::vector<eCubeMove> mMoves;
+   };
+
+   static tOLLPattern CreateOLLPattern(int top, int front, int right, int back, int left, const std::string& moves)
+   {
+      std::vector<eCubeMove> solve = GenerateMoves(moves)();
+      return tOLLPattern(std::bitset<9>(top), 
+                         std::bitset<3>(front), 
+                         std::bitset<3>(right), 
+                         std::bitset<3>(back), 
+                         std::bitset<3>(left),
+                         solve);
+   }
+
+   /**
     * @brief      Defines algorithms and state matching used for OLL.
     */
    class OLLUtils
    {
-      // Awkward shape
-      CUBE_ALG_DEF(OLL29, "R U R' U' R U' R' F' U' F R U R'");
-      CUBE_ALG_DEF(OLL30, "F R' F R2 U' R' U' R U R' F2");
-      CUBE_ALG_DEF(OLL41, "R U R' U R U2 R' F R U R' U' F'");
-      CUBE_ALG_DEF(OLL42, "R' U' R U' R' U2 R F R U R' U' F'");
+   public:
+      /**
+       * @brief      Searches through the list of valid OLL patterns and executes the correct one
+       * to solve the oll. Rejects the current pending moves if it fails.
+       *
+       * @param      cube      The cube
+       * @param      moveList  The move list
+       *
+       * @return     True if successful in solving the OLL.
+       */
+      static bool FindAndExecuteCorrectOLL(Cube& cube, CubeMoveList& moveList)
+      {
+         static std::vector<tOLLPattern> allOLLs = []()
+         {
+            std::vector<tOLLPattern> results 
+            {
+               // Awkward shape
+               CreateOLLPattern(0b011110001, 0b110, 0b010, 0b001, 0b000, "R U R' U' R U' R' F' U' F R U R'"), // OLL29
+               CreateOLLPattern(0b010110101, 0b010, 0b011, 0b000, 0b100, "F R' F R2 U' R' U' R U R' F2"),     // OLL30
+               CreateOLLPattern(0b010110101, 0b010, 0b010, 0b101, 0b000, "R U R' U R U2 R' F R U R' U' F'"),  // OLL41
+               CreateOLLPattern(0b101110010, 0b101, 0b010, 0b010, 0b000, "R' U' R U' R' U2 R F R U R' U' F'"), // OLL42
 
-      // Big lightning bolt
-      CUBE_ALG_DEF(OLL39, "L F' L' U' L U F U' L'");
-      CUBE_ALG_DEF(OLL40, "R' F R U R' U' F' U R");
+               // Big lightning bolt
+               CreateOLLPattern(0b001111100, 0b010, 0b100, 0b011, 0b000,  "L F' L' U' L U F U' L'"), // OLL39
+               CreateOLLPattern(0b100111001, 0b010, 0b000, 0b110, 0b001,  "R' F R U R' U' F' U R"), // OLL40
 
-      // C shape
-      CUBE_ALG_DEF(OLL34, "R U R2 U' R' F R U R U' F'");
-      CUBE_ALG_DEF(OLL46, "R' U' R' F R F' U R");
+               // C shape
+               CreateOLLPattern(0b000111101, 0b010, 0b001, 0b010, 0b100, "R U R2 U' R' F R U R U' F'"), // OLL34
+               CreateOLLPattern(0b110010110, 0b000, 0b111, 0b000, 0b010, "R' U' R' F R F' U R"), // OLL46
 
-      // Corners oriented
-      CUBE_ALG_DEF(OLL28, "r U R' U' r' R U R U' R'");
-      CUBE_ALG_DEF(OLL57, "R U R' U' M' U R U' r'");
+               // Corners oriented
+               CreateOLLPattern(0b111110101, 0b010, 0b010, 0b000, 0b000, "r U R' U' r' R U R U' R'"), // OLL28
+               CreateOLLPattern(0b101111101, 0b010, 0b000, 0b010, 0b000, "R U R' U' M' U R U' r'"), // OLL57
 
-      // Cross
-      CUBE_ALG_DEF(OLL21, "R U2 R' U' R U R' U' R U' R'");
-      CUBE_ALG_DEF(OLL22, "R U2 R2 U' R2 U' R2 U2 R");
-      CUBE_ALG_DEF(OLL23, "R2 D' R U2 R' D R U2 R");
-      CUBE_ALG_DEF(OLL24, "r U R' U' r' F R F'");
-      CUBE_ALG_DEF(OLL25, "F' r U R' U' r' F R");
-      CUBE_ALG_DEF(OLL26, "R U2 R' U' R U' R'");
-      CUBE_ALG_DEF(OLL27, "R U R' U R U2 R'");
+               // Cross
+               CreateOLLPattern(0b010111010, 0b101, 0b000, 0b101, 0b000, "R U2 R' U' R U R' U' R U' R'"), // OLL21
+               CreateOLLPattern(0b010111010, 0b001, 0b000, 0b100, 0b101, "R U2 R2 U' R2 U' R2 U2 R"), // OLL22
+               CreateOLLPattern(0b010111111, 0b000, 0b000, 0b101, 0b000, "R2 D' R U2 R' D R U2 R"), // OLL23
+               CreateOLLPattern(0b011111011, 0b100, 0b000, 0b001, 0b000, "r U R' U' r' F R F'"), // OLL24
+               CreateOLLPattern(0b011111110, 0b001, 0b000, 0b000, 0b100, "F' r U R' U' r' F R"), // OLL25
+               CreateOLLPattern(0b011111010, 0b100, 0b100, 0b000, 0b100, "R U2 R' U' R U' R'"), // OLL26
+               CreateOLLPattern(0b010111110, 0b001, 0b001, 0b001, 0b000, "R U R' U R U2 R'"), // OLL27
 
-      // Dot
-      CUBE_ALG_DEF(OLL01, "R U2 R2 F R F' U2 R' F R F'");
-      CUBE_ALG_DEF(OLL02, "r U r' U2 r U2 R' U2 R U' r'");
-      CUBE_ALG_DEF(OLL03, "r' R2 U R' U r U2 r' U M'");
-      CUBE_ALG_DEF(OLL04, "M U' r U2 r' U' R U' R' M'");
-      CUBE_ALG_DEF(OLL17, "F R' F' R2 r' U R U' R' U' M'");
-      CUBE_ALG_DEF(OLL18, "r U R' U R U2 r2 U' R U' R' U2 r");
-      CUBE_ALG_DEF(OLL19, "r' R U R U R' U' M' R' F R F'");
-      CUBE_ALG_DEF(OLL20, "r U R' U' M2 U R U' R' U' M'");
+               // Dot
+               CreateOLLPattern(0b000010000, 0b010, 0b111, 0b010, 0b111, "R U2 R2 F R F' U2 R' F R F'"), // OLL01
+               CreateOLLPattern(0b000010000, 0b010, 0b110, 0b111, 0b011, "r U r' U2 r U2 R' U2 R U' r'"), // OLL02
+               CreateOLLPattern(0b000010100, 0b011, 0b011, 0b011, 0b010, "r' R2 U R' U r U2 r' U M'"), // OLL03
+               CreateOLLPattern(0b000010001, 0b110, 0b010, 0b110, 0b110, "M U' r U2 r' U' R U' R' M'"), // OLL04
+               CreateOLLPattern(0b100010001, 0b110, 0b011, 0b010, 0b010, "F R' F' R2 r' U R U' R' U' M'"), // OLL17
+               CreateOLLPattern(0b101010000, 0b111, 0b010, 0b010, 0b010, "r U R' U R U2 r2 U' R U' R' U2 r"), // OLL18
+               CreateOLLPattern(0b101010000, 0b010, 0b110, 0b010, 0b011, "r' R U R U R' U' M' R' F R F'"), // OLL19
+               CreateOLLPattern(0b101010101, 0b010, 0b010, 0b010, 0b010, "r U R' U' M2 U R U' R' U' M'"), // OLL20
 
-      // Fish shape
-      CUBE_ALG_DEF(OLL09, "R U R' U' R' F R2 U R' U' F'");
-      CUBE_ALG_DEF(OLL10, "R U R' U R' F R F' R U2 R'");
-      CUBE_ALG_DEF(OLL35, "R U2 R2 F R F' R U2 R'");
-      CUBE_ALG_DEF(OLL37, "F R' F' R U R U' R'");
+               // Fish shape
+               CreateOLLPattern(0b010110001, 0b110, 0b010, 0b100, 0b100, "R U R' U' R' F R2 U R' U' F'"), // OLL09
+               CreateOLLPattern(0b001110010, 0b001, 0b010, 0b011, 0b001, "R U R' U R' F R F' R U2 R'"), // OLL10
+               CreateOLLPattern(0b100011011, 0b100, 0b001, 0b010, 0b010, "R U2 R2 F R F' R U2 R'"), // OLL35
+               CreateOLLPattern(0b110110001, 0b110, 0b011, 0b000, 0b000, "F R' F' R U R U' R'"), // OLL37
 
-      // I shape
-      CUBE_ALG_DEF(OLL51, "F U R U' R' U R U' R' F'");
-      CUBE_ALG_DEF(OLL52, "R U R' U R U' B U' B' R'");
-      CUBE_ALG_DEF(OLL55, "R' F R U R U' R2 F' R2 U' R' U R U R'");
-      CUBE_ALG_DEF(OLL56, "r' U' r U' R' U R U' R' U R r' U r");
+               // I shape
+               CreateOLLPattern(0b000111000, 0b110, 0b101, 0b011, 0b000, "F U R U' R' U R U' R' F'"), // OLL51
+               CreateOLLPattern(0b010010010, 0b100, 0b111, 0b001, 0b010, "R U R' U R U' B U' B' R'"), // OLL52
+               CreateOLLPattern(0b000111000, 0b111, 0b000, 0b111, 0b000, "R' F R U R U' R2 F' R2 U' R' U R U R'"), // OLL55
+               CreateOLLPattern(0b000111000, 0b010, 0b101, 0b010, 0b101, "r' U' r U' R' U R U' R' U R r' U r"), // OLL56
 
-      // Knight move shape
-      CUBE_ALG_DEF(OLL13, "F U R U' R2 F' R U R U' R'");
-      CUBE_ALG_DEF(OLL14, "R' F R U R' F' R F U' F'");
-      CUBE_ALG_DEF(OLL15, "l' U' l L' U' L U l' U l");
-      CUBE_ALG_DEF(OLL16, "r U r' R U R' U' r U' r'");
+               // Knight move shape
+               CreateOLLPattern(0b000111100, 0b011, 0b001, 0b011, 0b000, "F U R U' R2 F' R U R U' R'"), // OLL13
+               CreateOLLPattern(0b000111001, 0b110, 0b000, 0b110, 0b100, "R' F R U R' F' R F U' F'"), // OLL14
+               CreateOLLPattern(0b100111000, 0b011, 0b001, 0b010, 0b001, "l' U' l L' U' L U l' U l"), // OLL15
+               CreateOLLPattern(0b001111000, 0b110, 0b100, 0b010, 0b100, "r U r' R U R' U' r U' r'"), // OLL16
 
-      // P-Shape
-      CUBE_ALG_DEF(OLL31, "R' U' F U R U' R' F' R");
-      CUBE_ALG_DEF(OLL32, "L U F' U' L' U L F L'");
-      CUBE_ALG_DEF(OLL43, "F' U' L' U L F");
-      CUBE_ALG_DEF(OLL44, "F U R U' R' F'");
+               // P-Shape
+               CreateOLLPattern(0b011011001, 0b110, 0b000, 0b001, 0b010, "R' U' F U R U' R' F' R"), // OLL31
+               CreateOLLPattern(0b110110100, 0b011, 0b010, 0b100, 0b000, "L U F' U' L' U L F L'"), // OLL32
+               CreateOLLPattern(0b011011001, 0b010, 0b000, 0b000, 0b111, "F' U' L' U L F"), // OLL43
+               CreateOLLPattern(0b110110100, 0b010, 0b111, 0b000, 0b000, "F U R U' R' F'"), // OLL44
 
-      // Small L shape
-      CUBE_ALG_DEF(OLL47, "R' U' R' F R F' R' F R F' U R");
-      CUBE_ALG_DEF(OLL48, "F R U R' U' R U R' U' F'");
-      CUBE_ALG_DEF(OLL49, "r U' r2 U r2 U r2 U' r");
-      CUBE_ALG_DEF(OLL50, "r' U r2 U' r2 U' r2 U r'");
-      CUBE_ALG_DEF(OLL53, "l' U2 L U L' U' L U L' U l");
-      CUBE_ALG_DEF(OLL54, "r U2 R' U' R U R' U' R U' r'");
+               // Small L shape
+               CreateOLLPattern(0b010011000, 0b110, 0b101, 0b001, 0b010, "R' U' R' F R F' R' F R F' U R"), // OLL47
+               CreateOLLPattern(0b010110000, 0b011, 0b010, 0b100, 0b101, "F R U R' U' R U R' U' F'"), // OLL48
+               CreateOLLPattern(0b010011000, 0b011, 0b000, 0b100, 0b111, "r U' r2 U r2 U r2 U' r"), // OLL49
+               CreateOLLPattern(0b000011010, 0b001, 0b000, 0b110, 0b111, "r' U r2 U' r2 U' r2 U r'"), // OLL50
+               CreateOLLPattern(0b010011000, 0b111, 0b000, 0b101, 0b010, "l' U2 L U L' U' L U L' U l"), // OLL53
+               CreateOLLPattern(0b010110000, 0b111, 0b010, 0b101, 0b000, "r U2 R' U' R U R' U' R U' r'"), // OLL54
 
-      // Small lightning bolt
-      CUBE_ALG_DEF(OLL07, "r U R' U R U2 r'");
-      CUBE_ALG_DEF(OLL08, "l' U' L U' L' U2 l");
-      CUBE_ALG_DEF(OLL11, "r U R' U R' F R F' R U2 r'");
-      CUBE_ALG_DEF(OLL12, "M' R' U' R U' R' U2 R U' R r'");
+               // Small lightning bolt
+               CreateOLLPattern(0b010110100, 0b011, 0b011, 0b001, 0b000, "r U R' U R U2 r'"), // OLL07
+               CreateOLLPattern(0b010011001, 0b110, 0b000, 0b100, 0b110, "l' U' L U' L' U2 l"), // OLL08
+               CreateOLLPattern(0b011110000, 0b011, 0b010, 0b001, 0b001, "r U R' U R' F R F' R U2 r'"), // OLL11
+               CreateOLLPattern(0b110011000, 0b110, 0b100, 0b100, 0b010, "M' R' U' R U' R' U2 R U' R r'"), // OLL12
 
-      // Square shape
-      CUBE_ALG_DEF(OLL05, "l' U2 L U L' U l");
-      CUBE_ALG_DEF(OLL06, "r U2 R' U' R U' r'");
+               // Square shape
+               CreateOLLPattern(0b110110000, 0b011, 0b011, 0b000, 0b001, "l' U2 L U L' U l"), // OLL05
+               CreateOLLPattern(0b011011000, 0b110, 0b100, 0b000, 0b110, "r U2 R' U' R U' r'"), // OLL06
 
-      // T-Shape
-      CUBE_ALG_DEF(OLL33, "R U R' U' R' F R F'");
-      CUBE_ALG_DEF(OLL45, "F R U R' U' F'");
+               // T-Shape
+               CreateOLLPattern(0b001111001, 0b110, 0b000, 0b011, 0b000, "R U R' U' R' F R F'"), // OLL33
+               CreateOLLPattern(0b001111001, 0b010, 0b000, 0b010, 0b101, "F R U R' U' F'"), // OLL45
 
-      // W-Shape
-      CUBE_ALG_DEF(OLL36, "L' U' L U' L' U L U L F' L' F");
-      CUBE_ALG_DEF(OLL38, "R U R' U R U' R' U' R' F R F'");
+               // W-Shape
+               CreateOLLPattern(0b110011001, 0b010, 0b000, 0b100, 0b011, "L' U' L U' L' U L U L F' L' F"), // OLL36
+               CreateOLLPattern(0b011110100, 0b010, 0b110, 0b001, 0b000, "R U R' U R U' R' U' R' F R F'"), // OLL38
+            };
+
+            return results;
+         }();
+
+         // Check current orientation
+         for (int i = 0; i < allOLLs.size(); i++)
+         {
+            if (allOLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+
+         // Check rotation once
+         moveList.PushMove(eCubeMove::Up);
+         for (int i = 0; i < allOLLs.size(); i++)
+         {
+            if (allOLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+         moveList.RejectPendingMoves();
+
+         // Check rotation backwards
+         moveList.PushMove(eCubeMove::UpPrime);
+         for (int i = 0; i < allOLLs.size(); i++)
+         {
+            if (allOLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+         moveList.RejectPendingMoves();
+
+         // Check rotation backwards
+         moveList.PushMove(eCubeMove::Up2);
+         for (int i = 0; i < allOLLs.size(); i++)
+         {
+            if (allOLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+         moveList.RejectPendingMoves();
+
+         assert(false && "Could not match OLL case");
+         return false;
+      }
+   };
+
+   struct tPLLPattern
+   {
+      /**
+       * @brief      Define the pattern as what you expect to see in the cube at each side when it's solved
+       * using the pll. 
+       * L: Left Face
+       * R: Right Face
+       * F: Front Face
+       * B: Back Face
+       * 
+       * The system will not use the colors on the actual cube, rather it defines the colors as it goes.
+       * The first time it sees L, it will see what color is on the cube at the spot its expecting to see L
+       * then define that as L. In the future, every time it sees L it will expect it to be that color.
+       * When all colors match, the pll is a match.
+       *
+       * @param[in]  frontPattern  The front pattern
+       */
+      tPLLPattern(const std::string& frontPattern, const std::string& rightPattern, 
+         const std::string& backPattern, const std::string& leftPattern, const std::vector<eCubeMove>& solve)
+         : mFrontPattern(frontPattern), mRightPattern(rightPattern), mBackPattern(backPattern), mLeftPattern(leftPattern),
+         mSolve(solve)
+      {
+      }
+
+      /**
+       * @param      cube  The cube
+       * @return      Returns true if the pattern matches what's on the cube.
+       */
+      bool CheckMatch(Cube& cube) const
+      {
+         eCubeColor frontColor = eCubeColor::NumColors;
+         eCubeColor rightColor = eCubeColor::NumColors;
+         eCubeColor backColor = eCubeColor::NumColors;
+         eCubeColor leftColor = eCubeColor::NumColors;
+
+         // Check sides
+         for (int i = 0; i < 3; i++)
+         {
+            if (!CheckSquareMatch(cube, i, 0, eCubeFace::Front, frontColor, rightColor, backColor, leftColor, mFrontPattern) ||
+                !CheckSquareMatch(cube, i, 0, eCubeFace::Right, frontColor, rightColor, backColor, leftColor, mRightPattern) ||
+                !CheckSquareMatch(cube, i, 0, eCubeFace::Back, frontColor, rightColor, backColor, leftColor, mBackPattern) ||
+                !CheckSquareMatch(cube, i, 0, eCubeFace::Left, frontColor, rightColor, backColor, leftColor, mLeftPattern))
+            {
+               return false;
+            }
+         }
+
+         return true;
+      }
+
+      /**
+       * @brief      Executes the OLL if the current orientation is an exact match with the OLL alg
+       * @param      cube      The cube
+       * @param      moveList  The move list
+       * @return     True if perform alg if matches, False otherwise.
+       */
+      bool PerformAlgIfMatches(Cube& cube, CubeMoveList& moveList) const
+      {
+         // Check the OLL for a match at the current layer.
+         if (CheckMatch(cube))
+         {
+            moveList.PushMoves(mSolve);
+            return true;
+         }
+
+         return false;
+      }
+
+   private:
+      bool CheckSquareMatch(Cube& cube, int x, int y, eCubeFace face, 
+         eCubeColor& frontColor, eCubeColor& rightColor, eCubeColor& backColor, eCubeColor& leftColor,
+         const std::string& pattern) const
+      {
+         char patternValue = pattern[CubeDimsToIdx(x, y)];
+         eCubeColor* expectedColor = nullptr;
+
+         switch (patternValue)
+         {
+         case 'F':
+            expectedColor = &frontColor;
+            break;
+         case 'R':
+            expectedColor = &rightColor;
+            break;
+         case 'B':
+            expectedColor = &backColor;
+            break;
+         case 'L':
+            expectedColor = &leftColor;
+            break;
+         default:
+            assert(false && "Invalid pattern spec");
+            break;
+         }
+
+         // Check case where the expected color isn't set yet.
+         if (*expectedColor == eCubeColor::NumColors)
+         {
+            *expectedColor = cube.GetState(face, x, y);
+
+            // We always match in this case.
+            return true;
+         }
+
+         return *expectedColor == cube.GetState(face, x, y);
+      }
+
+      std::string mFrontPattern;
+      std::string mRightPattern;
+      std::string mBackPattern;
+      std::string mLeftPattern;
+      std::vector<eCubeMove> mSolve;
+   };
+
+   static tPLLPattern CreatePLLPattern(const std::string& front, const std::string& right, 
+      const std::string& back, const std::string& left, const std::string& moves)
+   {
+      std::vector<eCubeMove> solve = GenerateMoves(moves)();
+      return tPLLPattern(front, right, back, left, solve);
+   }
+
+   class PLLUtils
+   {
+   public:
+      static bool FindAndExecuteCorrectPLL(Cube& cube, CubeMoveList& moveList)
+      {
+         static std::vector<tPLLPattern> allPLLs = []()
+         {
+            std::vector<tPLLPattern> results 
+            {
+               CreatePLLPattern("LFF", "RRL", "FBR", "BLB", "x L2 D2 L' U' L D2 L' U L'"), // PLL_Aa
+               CreatePLLPattern("RFB", "LRR", "BBL", "FLF", "x' L2 D2 L U L' D2 L U' L"), // PLL_Ab
+               CreatePLLPattern("FBR", "BRF", "RFB", "LLL", "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R"), // PLL_F
+               CreatePLLPattern("FRR", "BLF", "RFB", "LBL", "R2 U R' U R' U' R U' R2 U' D R' U R D'"), // PLL_Ga
+               CreatePLLPattern("FBR", "BFF", "RLB", "LRL", "R' U' R U D' R2 U R' U R U' R U' R2 D"), // PLL_Gb
+               CreatePLLPattern("FBR", "BLF", "RRB", "LFL", "R2 U' R U' R U R' U R2 U D' R U' R' D"), // PLL_Gc
+               CreatePLLPattern("FLR", "BBF", "RFB", "LRL", "R U R' U' D R2 U' R U' R' U R' U R2 D'"), // PLL_Gd
+               CreatePLLPattern("FFR", "BBF", "RRB", "LLL", "x R2 F R F' R U2 r' U r U2"), // PLL_Ja
+               CreatePLLPattern("LFF", "RLL", "FRR", "BBB", "R U R' F' R U R' U' R' F R2 U' R'"), // PLL_Jb
+               CreatePLLPattern("LLF", "RFL", "FBR", "BRB", "R U' R' U' R U R D R' U' R D' R' U2 R'"), // PLL_Ra
+               CreatePLLPattern("RFB", "LBR", "BLL", "FRF", "R2 F R U R U' R' F' R U2 R' U2 R"), // PLL_Rb
+               CreatePLLPattern("FFR", "BLF", "RBB", "LRL", "R U R' U' R' F R2 U' R' U' R U R' F'"), // PLL_T
+               CreatePLLPattern("LFR", "BRF", "RBL", "FLB", "x' L' U L D' L' U' L D L' U' L D' L' U L D"), // PLL_E
+               CreatePLLPattern("BFF", "RLL", "FBB", "LRR", "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'"), // PLL_Na
+               CreatePLLPattern("FFB", "LLR", "BBF", "RRL", "R' U R U' R' F' U' F R U R' F R' F' R U' R"), // PLL_Nb
+               CreatePLLPattern("FFB", "LBR", "BRF", "RLL", "R' U R' U' y R' F' R2 U' R' U R' F R F"), // PLL_V
+               CreatePLLPattern("FFB", "LRR", "BLF", "RBL", "F R U' R' U' R U R' F' R U R' U' R' F R F'"), // PLL_Y
+               CreatePLLPattern("FBF", "RLR", "BFB", "LRL", "M2 U M2 U2 M2 U M2"), // PLL_H
+               CreatePLLPattern("FRF", "RLR", "BBB", "LFL", "M2 U M U2 M' U M2"), // PLL_Ua
+               CreatePLLPattern("FLF", "RFR", "BBB", "LRL", "M2 U' M U2 M' U' M2"), // PLL_Ub
+               CreatePLLPattern("LBL", "FRF", "RFR", "BLB", "M' U M2 U M2 U M' U2 M2"), // PLL_Z
+            };
+
+            return results;
+         }();
+
+         // Check current orientation
+         for (int i = 0; i < allPLLs.size(); i++)
+         {
+            if (allPLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+
+         // Check rotation once
+         moveList.PushMove(eCubeMove::Up);
+         for (int i = 0; i < allPLLs.size(); i++)
+         {
+            if (allPLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+         moveList.RejectPendingMoves();
+
+         // Check rotation backwards
+         moveList.PushMove(eCubeMove::UpPrime);
+         for (int i = 0; i < allPLLs.size(); i++)
+         {
+            if (allPLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+         moveList.RejectPendingMoves();
+
+         // Check rotation backwards
+         moveList.PushMove(eCubeMove::Up2);
+         for (int i = 0; i < allPLLs.size(); i++)
+         {
+            if (allPLLs[i].PerformAlgIfMatches(cube, moveList))
+            {
+               return true;
+            }
+         }
+         moveList.RejectPendingMoves();
+
+         assert(false && "Could not match PLL case");
+         return false;
+      }
    };
 
    /**
@@ -613,14 +1018,11 @@ namespace cube
       }
    }
 
-   static bool OrientCube(Cube& cube, std::ostream& outputStream, bool useSeparators)
+   static void RotateColorToBottom(Cube& cube, CubeMoveList& moveList, eCubeColor bottomColor)
    {
-      // We want white on the bottom.
-      CubeMoveList moveList(cube);
-
-      if (cube.ColorOfFace(eCubeFace::Bottom) != BottomColor)
+      if (cube.ColorOfFace(eCubeFace::Bottom) != bottomColor)
       {
-         eCubeFace bottomColorFace = cube.FaceOfColor(BottomColor);
+         eCubeFace bottomColorFace = cube.FaceOfColor(bottomColor);
          eCubeMove orientingMove;
 
          switch (bottomColorFace)
@@ -648,6 +1050,14 @@ namespace cube
 
          moveList.PushMove(orientingMove, true);
       }
+   }
+
+   static bool OrientCube(Cube& cube, std::ostream& outputStream, bool useSeparators)
+   {
+      // We want white on the bottom.
+      CubeMoveList moveList(cube);
+
+      RotateColorToBottom(cube, moveList, BottomColor);
 
       if (moveList.GetNumMoves() > 0)
       {
@@ -1952,6 +2362,7 @@ namespace cube
       };
 
       assert(count <= 4);
+      EnsureF2lSolved(cube);
 
       if (moveList.GetNumMoves() > 0)
       {
@@ -1961,7 +2372,6 @@ namespace cube
          return true;
       }
 
-      EnsureF2lSolved(cube);
       outputStream << "F2L: Already Solved";
       return false;
    }
@@ -1970,9 +2380,24 @@ namespace cube
 
    #pragma region Orient last FirstTwoLayersAlgorithms
 
+   static void EnsureOLLSolved(Cube& cube)
+   {
+      for (int i = 0; i < CubeSize; i++)
+      {
+         for (int j = 0; j < CubeSize; j++)
+         {
+            assert(cube.GetState(eCubeFace::Top, i, j) == cube.ColorOfFace(eCubeFace::Top));
+         }
+      }
+   }
+
    static bool SolveOrientLastLayer(Cube& cube, std::ostream& outputStream, bool addSeparators)
    {
       CubeMoveList moveList(cube);
+
+      OLLUtils::FindAndExecuteCorrectOLL(cube, moveList);
+      moveList.AcceptPendingMoves();
+      EnsureOLLSolved(cube);
 
       if (moveList.GetNumMoves() > 0)
       {
@@ -1982,8 +2407,59 @@ namespace cube
          return true;
       }
 
-      EnsureF2lSolved(cube);
       outputStream << "OLL: Already Solved";
+      return false;
+   }
+
+   #pragma endregion
+
+   #pragma region Orient last FirstTwoLayersAlgorithms
+
+   static void EnsurePllSolved(Cube& cube)
+   {
+      //assert(cube.IsSolved());
+   }
+
+   static bool SolvePermeateLastLayer(Cube& cube, std::ostream& outputStream, bool addSeparators)
+   {
+      CubeMoveList moveList(cube);
+
+      PLLUtils::FindAndExecuteCorrectPLL(cube, moveList);
+
+      // Rotate last layer to solved position if needed.
+      RotateColorToBottom(cube, moveList, BottomColor);
+      eCubeColor frontColor = cube.ColorOfFace(eCubeFace::Front);
+      eCubeColor currentTopLayerFrontColor = cube.GetState(eCubeFace::Front, 0, 0);
+
+      if (frontColor != currentTopLayerFrontColor)
+      {
+         if (cube.ColorOfFace(eCubeFace::Right) == currentTopLayerFrontColor)
+         {
+            moveList.PushMove(eCubeMove::UpPrime);
+         }
+         else if (cube.ColorOfFace(eCubeFace::Left) == currentTopLayerFrontColor)
+         {
+            moveList.PushMove(eCubeMove::Up);
+         }
+         else if (cube.ColorOfFace(eCubeFace::Back) == currentTopLayerFrontColor)
+         {
+            moveList.PushMove(eCubeMove::Up2);
+         }
+      }
+
+      moveList.AcceptPendingMoves();
+
+      EnsurePllSolved(cube);
+
+      if (moveList.GetNumMoves() > 0)
+      {
+         outputStream << "PLL: ";
+         moveList.SerializeMoves(outputStream);
+         outputStream << "\n";
+         return true;
+      }
+
+      outputStream << "PLL: Already Solved";
       return false;
    }
 
@@ -2007,6 +2483,11 @@ namespace cube
       }
 
       if (SolveOrientLastLayer(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
+      {
+         mCube.Print(outputStream);
+      }
+
+      if (SolvePermeateLastLayer(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
       {
          mCube.Print(outputStream);
       }

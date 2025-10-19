@@ -296,6 +296,9 @@ public:
       default:
          assert(false);
       }
+
+      // Invalid, default
+      return eCubeAxis::ZAxis;
    }
 
    /**

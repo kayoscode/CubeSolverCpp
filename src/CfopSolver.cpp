@@ -26,7 +26,7 @@ namespace cube
       };
    }
 
-   class FirstLayerAlgorithms
+   class FirstTwoLayersAlgorithms
    {
    public:
       // To use, position the inverted edge at the right side of the right face.
@@ -91,6 +91,99 @@ namespace cube
       CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace4, "(R U' R' U) (R U2 R') U (R U' R')");
       CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace5, "(F' U F) U2 (R U R' U) (R U' R')");
       CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace6, "(R U R' U') (R U' R') U2 y' (R' U' R)");
+   };
+
+   /**
+    * @brief      Defines algorithms and state matching used for OLL.
+    */
+   class OLLUtils
+   {
+      // Awkward shape
+      CUBE_ALG_DEF(OLL29, "R U R' U' R U' R' F' U' F R U R'");
+      CUBE_ALG_DEF(OLL30, "F R' F R2 U' R' U' R U R' F2");
+      CUBE_ALG_DEF(OLL41, "R U R' U R U2 R' F R U R' U' F'");
+      CUBE_ALG_DEF(OLL42, "R' U' R U' R' U2 R F R U R' U' F'");
+
+      // Big lightning bolt
+      CUBE_ALG_DEF(OLL39, "L F' L' U' L U F U' L'");
+      CUBE_ALG_DEF(OLL40, "R' F R U R' U' F' U R");
+
+      // C shape
+      CUBE_ALG_DEF(OLL34, "R U R2 U' R' F R U R U' F'");
+      CUBE_ALG_DEF(OLL46, "R' U' R' F R F' U R");
+
+      // Corners oriented
+      CUBE_ALG_DEF(OLL28, "r U R' U' r' R U R U' R'");
+      CUBE_ALG_DEF(OLL57, "R U R' U' M' U R U' r'");
+
+      // Cross
+      CUBE_ALG_DEF(OLL21, "R U2 R' U' R U R' U' R U' R'");
+      CUBE_ALG_DEF(OLL22, "R U2 R2 U' R2 U' R2 U2 R");
+      CUBE_ALG_DEF(OLL23, "R2 D' R U2 R' D R U2 R");
+      CUBE_ALG_DEF(OLL24, "r U R' U' r' F R F'");
+      CUBE_ALG_DEF(OLL25, "F' r U R' U' r' F R");
+      CUBE_ALG_DEF(OLL26, "R U2 R' U' R U' R'");
+      CUBE_ALG_DEF(OLL27, "R U R' U R U2 R'");
+
+      // Dot
+      CUBE_ALG_DEF(OLL01, "R U2 R2 F R F' U2 R' F R F'");
+      CUBE_ALG_DEF(OLL02, "r U r' U2 r U2 R' U2 R U' r'");
+      CUBE_ALG_DEF(OLL03, "r' R2 U R' U r U2 r' U M'");
+      CUBE_ALG_DEF(OLL04, "M U' r U2 r' U' R U' R' M'");
+      CUBE_ALG_DEF(OLL17, "F R' F' R2 r' U R U' R' U' M'");
+      CUBE_ALG_DEF(OLL18, "r U R' U R U2 r2 U' R U' R' U2 r");
+      CUBE_ALG_DEF(OLL19, "r' R U R U R' U' M' R' F R F'");
+      CUBE_ALG_DEF(OLL20, "r U R' U' M2 U R U' R' U' M'");
+
+      // Fish shape
+      CUBE_ALG_DEF(OLL09, "R U R' U' R' F R2 U R' U' F'");
+      CUBE_ALG_DEF(OLL10, "R U R' U R' F R F' R U2 R'");
+      CUBE_ALG_DEF(OLL35, "R U2 R2 F R F' R U2 R'");
+      CUBE_ALG_DEF(OLL37, "F R' F' R U R U' R'");
+
+      // I shape
+      CUBE_ALG_DEF(OLL51, "F U R U' R' U R U' R' F'");
+      CUBE_ALG_DEF(OLL52, "R U R' U R U' B U' B' R'");
+      CUBE_ALG_DEF(OLL55, "R' F R U R U' R2 F' R2 U' R' U R U R'");
+      CUBE_ALG_DEF(OLL56, "r' U' r U' R' U R U' R' U R r' U r");
+
+      // Knight move shape
+      CUBE_ALG_DEF(OLL13, "F U R U' R2 F' R U R U' R'");
+      CUBE_ALG_DEF(OLL14, "R' F R U R' F' R F U' F'");
+      CUBE_ALG_DEF(OLL15, "l' U' l L' U' L U l' U l");
+      CUBE_ALG_DEF(OLL16, "r U r' R U R' U' r U' r'");
+
+      // P-Shape
+      CUBE_ALG_DEF(OLL31, "R' U' F U R U' R' F' R");
+      CUBE_ALG_DEF(OLL32, "L U F' U' L' U L F L'");
+      CUBE_ALG_DEF(OLL43, "F' U' L' U L F");
+      CUBE_ALG_DEF(OLL44, "F U R U' R' F'");
+
+      // Small L shape
+      CUBE_ALG_DEF(OLL47, "R' U' R' F R F' R' F R F' U R");
+      CUBE_ALG_DEF(OLL48, "F R U R' U' R U R' U' F'");
+      CUBE_ALG_DEF(OLL49, "r U' r2 U r2 U r2 U' r");
+      CUBE_ALG_DEF(OLL50, "r' U r2 U' r2 U' r2 U r'");
+      CUBE_ALG_DEF(OLL53, "l' U2 L U L' U' L U L' U l");
+      CUBE_ALG_DEF(OLL54, "r U2 R' U' R U R' U' R U' r'");
+
+      // Small lightning bolt
+      CUBE_ALG_DEF(OLL07, "r U R' U R U2 r'");
+      CUBE_ALG_DEF(OLL08, "l' U' L U' L' U2 l");
+      CUBE_ALG_DEF(OLL11, "r U R' U R' F R F' R U2 r'");
+      CUBE_ALG_DEF(OLL12, "M' R' U' R U' R' U2 R U' R r'");
+
+      // Square shape
+      CUBE_ALG_DEF(OLL05, "l' U2 L U L' U l");
+      CUBE_ALG_DEF(OLL06, "r U2 R' U' R U' r'");
+
+      // T-Shape
+      CUBE_ALG_DEF(OLL33, "R U R' U' R' F R F'");
+      CUBE_ALG_DEF(OLL45, "F R U R' U' F'");
+
+      // W-Shape
+      CUBE_ALG_DEF(OLL36, "L' U' L U' L' U L U L F' L' F");
+      CUBE_ALG_DEF(OLL38, "R U R' U R U' R' U' R' F R F'");
    };
 
    /**
@@ -678,7 +771,7 @@ namespace cube
                {
                   // Move to the right edge, then solve the inverted edge.
                   moveList.PushMove(eCubeMove::Right);
-                  moveList.PushMoves(FirstLayerAlgorithms::SolveInvertedEdge());
+                  moveList.PushMoves(FirstTwoLayersAlgorithms::SolveInvertedEdge());
                }
                break;
             case eFaceEdgePos::BottomEdge:
@@ -692,7 +785,7 @@ namespace cube
                {
                   // Prep with R prime to get the inverted edge on the right.
                   moveList.PushMove(eCubeMove::RightPrime);
-                  moveList.PushMoves(FirstLayerAlgorithms::SolveInvertedEdge());
+                  moveList.PushMoves(FirstTwoLayersAlgorithms::SolveInvertedEdge());
                }
 
                break;
@@ -706,7 +799,7 @@ namespace cube
                {
                   // Prep then solve
                   moveList.PushMove(eCubeMove::Right2);
-                  moveList.PushMoves(FirstLayerAlgorithms::SolveInvertedEdge());
+                  moveList.PushMoves(FirstTwoLayersAlgorithms::SolveInvertedEdge());
                }
                break;
             case eFaceEdgePos::RightEdge:
@@ -718,7 +811,7 @@ namespace cube
                else
                {
                   // It's already prepped, so just solve
-                  moveList.PushMoves(FirstLayerAlgorithms::SolveInvertedEdge());
+                  moveList.PushMoves(FirstTwoLayersAlgorithms::SolveInvertedEdge());
                }
                break;
             default:
@@ -1350,25 +1443,25 @@ namespace cube
       // If the edge and corner are directly paired and oriented correctly.
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertRightPair());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lBasicInsertRightPair());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertFrontPair());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lBasicInsertFrontPair());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertSoloLeftEdge());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lBasicInsertSoloLeftEdge());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertSoloTopEdge());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lBasicInsertSoloTopEdge());
          return true;
       }
 
@@ -1387,38 +1480,38 @@ namespace cube
       // If the edge and corner are directly paired and oriented correctly.
       if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_1());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase1_1());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_2());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase1_2());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_3());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase1_3());
          return true;
       }
 
       // Inverted edge-corner pair
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_4());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase1_4());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_5());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase1_5());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_6());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase1_6());
          return true;
       }
 
@@ -1435,25 +1528,25 @@ namespace cube
 
       if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_1());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase2_1());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_2());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase2_2());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_3());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase2_3());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_4());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase2_4());
          return true;
       }
 
@@ -1470,25 +1563,25 @@ namespace cube
 
       if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_1());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase3_1());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_2());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase3_2());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_3());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase3_3());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_4());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCase3_4());
          return true;
       }
 
@@ -1505,37 +1598,37 @@ namespace cube
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces1());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces1());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces2());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces2());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces3());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces3());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces4());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces4());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces5());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces5());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces6());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces6());
          return true;
       }
 
@@ -1555,37 +1648,37 @@ namespace cube
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU1());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU1());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU2());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU2());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU3());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU3());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU4());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU4());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU5());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU5());
          return true;
       }
 
       if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU6());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU6());
          return true;
       }
 
@@ -1603,37 +1696,37 @@ namespace cube
 
       if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU1());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU1());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU2());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU2());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU3());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU3());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU4());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU4());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
          return true;
       }
 
@@ -1652,38 +1745,38 @@ namespace cube
       // Unused solved case.
       if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU1());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU1());
          assert(false && "F2l case should not be solved yet, but it is");
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU2());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU2());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU3());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU3());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU4());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU4());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
          return true;
       }
 
       if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
       {
-         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU6());
+         moveList.PushMoves(FirstTwoLayersAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU6());
          return true;
       }
 
@@ -1875,6 +1968,27 @@ namespace cube
 
    #pragma endregion F2L
 
+   #pragma region Orient last FirstTwoLayersAlgorithms
+
+   static bool SolveOrientLastLayer(Cube& cube, std::ostream& outputStream, bool addSeparators)
+   {
+      CubeMoveList moveList(cube);
+
+      if (moveList.GetNumMoves() > 0)
+      {
+         outputStream << "OLL: ";
+         moveList.SerializeMoves(outputStream);
+         outputStream << "\n";
+         return true;
+      }
+
+      EnsureF2lSolved(cube);
+      outputStream << "OLL: Already Solved";
+      return false;
+   }
+
+   #pragma endregion
+
    void CfopSolver::Solve(std::ostream& outputStream)
    {
       if (OrientCube(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
@@ -1888,6 +2002,11 @@ namespace cube
       }
 
       if (SolveFirstTwoLayers(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
+      {
+         mCube.Print(outputStream);
+      }
+
+      if (SolveOrientLastLayer(mCube, outputStream, mAddSeparators) && mShowCubeAfterEachStep)
       {
          mCube.Print(outputStream);
       }

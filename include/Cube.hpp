@@ -301,13 +301,30 @@ public:
       std::mt19937 engine(rd());
       engine.seed(seed);
 
+      // Define the valid moves for a scramble
+      static std::vector<eCubeMove> validScrambleMoves
+      {
+         eCubeMove::Right, eCubeMove::Right2, eCubeMove::RightPrime,
+         eCubeMove::Left, eCubeMove::Left2, eCubeMove::LeftPrime,
+         eCubeMove::Up, eCubeMove::Up2, eCubeMove::UpPrime,
+         eCubeMove::Front, eCubeMove::Front2, eCubeMove::FrontPrime,
+      };
+
       // Uniform integer distribution between 1 and 6 (like a die roll)
-      std::uniform_int_distribution<int> randomMovesGen(0, EnumToInt(eCubeMove::NumMoves) - 1);
+      std::uniform_int_distribution<int> randomMovesGen(0, validScrambleMoves.size() - 1);
 
       // Generate random sequence of moves.
-      for (int j = 0; j < numMoves; j++)
+      int lastAxis = -1;
+      while (scramble.size() < numMoves)
       {
-         scramble.push_back(static_cast<eCubeMove>(randomMovesGen(engine)));
+         int moveIdx = randomMovesGen(engine);
+         int moveAxis = moveIdx / 3;
+
+         if (moveAxis != lastAxis)
+         {
+            scramble.push_back(static_cast<eCubeMove>(validScrambleMoves[moveIdx]));
+            lastAxis = moveAxis;
+         }
       }
    }
 

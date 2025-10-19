@@ -2,8 +2,7 @@
 #include "CubeSolver.hpp"
 
 #include <cassert>
-#include <cinttypes>
-#include <map>
+#include <tuple>
 #include <vector>
 
 #define CUBE_ALG_DEF(name, moves)                           \
@@ -15,8 +14,7 @@
 
 namespace cube
 {
-   constexpr eCubeColor BottomColor = Cube::DefaultColorOfFace(eCubeFace::Bottom);
-   constexpr eCubeColor FrontColor = Cube::DefaultColorOfFace(eCubeFace::Front);
+   constexpr eCubeColor BottomColor = eCubeColor::Red;
 
    static auto GenerateMoves(const std::string& moveNotation)
    {
@@ -33,6 +31,66 @@ namespace cube
    public:
       // To use, position the inverted edge at the right side of the right face.
       CUBE_ALG_DEF(SolveInvertedEdge, "Uw R' Uw'");
+
+      // F2l
+      // https://www.cubeskills.com/uploads/pdf/tutorials/f2l.pdf
+      // Basic inserts
+      CUBE_ALG_DEF(SolveF2lBasicInsertRightPair, "U (R U' R')");
+      CUBE_ALG_DEF(SolveF2lBasicInsertFrontPair, "y' U' (R' U R)");
+      CUBE_ALG_DEF(SolveF2lBasicInsertSoloLeftEdge, "Y' (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lBasicInsertSoloTopEdge, "(R U R')");
+
+      // F2l Case1_x
+      CUBE_ALG_DEF(SolveF2lCase1_1, "U' (R U' R' U) y' (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lCase1_2, "U' (R U R' U) (R U R')");
+      CUBE_ALG_DEF(SolveF2lCase1_3, "U' (R U2 R') d (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lCase1_4, "R' U2 R2 U R2 U R");
+      CUBE_ALG_DEF(SolveF2lCase1_5, "y' U (R' U R U') (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lCase1_6, "U' (R U' R' U) (R U R')");
+
+      // F2l Case2_x
+      CUBE_ALG_DEF(SolveF2lCase2_1, "(U' R U R') U2 (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCase2_2, "d (R' U' R) U2 (R' U R)");
+      CUBE_ALG_DEF(SolveF2lCase2_3, "U' (R U2 R') U2 (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCase2_4, "d (R' U2 R) U2 (R' U R)");
+
+      // F2l Case3_x
+      CUBE_ALG_DEF(SolveF2lCase3_1, "U (R U2 R') U (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCase3_2, "y' U' (R' U2 R) U' (R' U R)");
+      CUBE_ALG_DEF(SolveF2lCase3_3, "(R U' R') U2 (R U R')");
+      CUBE_ALG_DEF(SolveF2lCase3_4, "y' U2 (R' U' R) U' (R' U R)");
+
+      // F2l incorrectly connected pieces
+      CUBE_ALG_DEF(SolveF2lCaseIncorrectlyConnectedPieces1, "y' (R' U R) U2 y (R U R')");
+      CUBE_ALG_DEF(SolveF2lCaseIncorrectlyConnectedPieces2, "U F (R U R' U') F' (U R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseIncorrectlyConnectedPieces3, "(R U2 R') U' (R U R')");
+      CUBE_ALG_DEF(SolveF2lCaseIncorrectlyConnectedPieces4, "y' (R' U2 R) U (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lCaseIncorrectlyConnectedPieces5, "U (R U' R' U') (R U' R' U) (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseIncorrectlyConnectedPieces6, "y' U' (R' U R U) (R' U R U') (R' U R)");
+
+      // F2l Corner in place edge in u face
+      CUBE_ALG_DEF(SolveF2lCaseCornerInPlaceEdgeInU1, "R' F' R U (R U' R') F");
+      CUBE_ALG_DEF(SolveF2lCaseCornerInPlaceEdgeInU2, "U (R U' R') U' (F' U F)");
+      CUBE_ALG_DEF(SolveF2lCaseCornerInPlaceEdgeInU3, "(R U' R' U) (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseCornerInPlaceEdgeInU4, "y' (R' U R U') (R' U R)");
+      CUBE_ALG_DEF(SolveF2lCaseCornerInPlaceEdgeInU5, "y' (R' U' R U) (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lCaseCornerInPlaceEdgeInU6, "(R U R' U') (R U R')");
+
+      // F2l Edge in place, corner in U face
+      CUBE_ALG_DEF(SolveF2lCaseEdgeInPlaceCornerInU1, "(R U' R' U) y' (R' U R)");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeInPlaceCornerInU2, "(U R U' R') (U R U' R') (U R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeInPlaceCornerInU3, "(U' R U' R') U2 (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeInPlaceCornerInU4, "U (R U R') U2 (R U R')");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeInPlaceCornerInU5, "(U' R U R') U y' (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeInPlaceCornerInU6, "U (F' U' F) U' (R U R')");
+
+      // F2l edge and corner in place
+      CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace1, ""); // Solved case (unused)
+      CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace2, "(R U' R') d (R' U2 R) U2 (R' U R)");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace3, "(R U' R' U') R U R' U2 (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace4, "(R U' R' U) (R U2 R') U (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace5, "(F' U F) U2 (R U R' U) (R U' R')");
+      CUBE_ALG_DEF(SolveF2lCaseEdgeAndCornerInPlace6, "(R U R' U') (R U' R') U2 y' (R' U' R)");
    };
 
    /**
@@ -1065,26 +1123,734 @@ namespace cube
    }
 
    /**
-    * @brief      Returns true if something had to be done to solve f2l assuming the given face
+    * @brief      Verifies as a quick self test that all f2l pairs have actaully been solved.
+    * Asserts false if it's hasn't.
+    */
+   static void EnsureF2lSolved(Cube& cube)
+   {
+      // Check if the cross has been solved as well since that's a prereq for f2l.
+      EnsureCrossSolved(cube);
+
+      assert(IsF2lPairSolved(cube, eCubeFace::Front, eCubeFace::Left));
+      assert(IsF2lPairSolved(cube, eCubeFace::Front, eCubeFace::Right));
+      assert(IsF2lPairSolved(cube, eCubeFace::Back, eCubeFace::Left));
+      assert(IsF2lPairSolved(cube, eCubeFace::Back, eCubeFace::Right));
+   }
+
+   /**
+    * @brief      Finds the F2l corner (assuming the corner we want to solve is positioned in the right)
+    * and places it either in the top right if it needs to move it. Otherwise, leaves it in the bottom right.
+    * This function does not mess with the orientation of the corner. Nor does it accept the move list.
+    */
+   static void PositionF2lCornerInRightTopOrBottom(Cube& cube, CubeMoveList& moveList)
+   {
+      eCubeColor color1 = cube.ColorOfFace(eCubeFace::Front);
+      eCubeColor color2 = cube.ColorOfFace(eCubeFace::Right);
+      eCubeColor color3 = BottomColor;
+
+      // Since we want the corner to be on the right, we only have to check the left two corner positions 
+      // for the front face.
+      if (CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, eFaceCornerPos::TopLeft, color1, color2, color3))
+      {
+         moveList.PushMove(eCubeMove::UpPrime);
+      }
+      else if (CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, eFaceCornerPos::BottomLeft, color1, color2, color3))
+      {
+         moveList.PushMove(eCubeMove::LeftPrime);
+         moveList.PushMove(eCubeMove::UpPrime);
+         moveList.PushMove(eCubeMove::Left);
+      }
+      // Check all four back corners.
+      else if (CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Back, eFaceCornerPos::TopLeft, color1, color2, color3))
+      {
+         moveList.PushMove(eCubeMove::Up);
+      }
+      else if (CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Back, eFaceCornerPos::TopRight, color1, color2, color3))
+      {
+         moveList.PushMove(eCubeMove::Up2);
+      }
+      else if (CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Back, eFaceCornerPos::BottomLeft, color1, color2, color3))
+      {
+         moveList.PushMove(eCubeMove::Y);
+         moveList.PushMove(eCubeMove::Right);
+         moveList.PushMove(eCubeMove::Up);
+         moveList.PushMove(eCubeMove::RightPrime);
+         moveList.PushMove(eCubeMove::YPrime);
+      }
+      else if (CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Back, eFaceCornerPos::BottomRight, color1, color2, color3))
+      {
+         moveList.PushMove(eCubeMove::YPrime);
+         moveList.PushMove(eCubeMove::LeftPrime);
+         moveList.PushMove(eCubeMove::Up2);
+         moveList.PushMove(eCubeMove::Left);
+         moveList.PushMove(eCubeMove::Y);
+      }
+
+      // Ensure the right corner is correctly positioned on the right.
+      assert(CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, eFaceCornerPos::TopRight, color1, color2, color3) ||
+             CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, eFaceCornerPos::BottomRight, color1, color2, color3));
+   }
+
+   /**
+    * @brief      Position the f2l edge at the top of the cube in preparation for solving the f2l alg.
+    * Does not accept the move list yet.
+    */
+   static void PositionF2lEdgeAtTopOrMiddleRight(Cube& cube, CubeMoveList& moveList)
+   {
+      // The edge can be positioned anywhere on the top, but that's not the case were interested in.
+      // The only edges we have to correct are the middle edges in the front-left, back-left, and back-right.
+      eCubeColor color1 = cube.ColorOfFace(eCubeFace::Front);
+      eCubeColor color2 = cube.ColorOfFace(eCubeFace::Right);
+
+      // Store whether the corner is on top or below. This may change the method of removal we choose.
+      // This difference is mainly for solve efficiency.
+      bool isCornerInBottomRight = CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, 
+         eFaceCornerPos::BottomRight, color1, color2, BottomColor);
+
+      bool isInverted;
+      if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Front, eFaceEdgePos::LeftEdge, color1, color2, isInverted))
+      {
+         if (isCornerInBottomRight)
+         {
+            moveList.PushMove(eCubeMove::LeftPrime);
+            moveList.PushMove(eCubeMove::UpPrime);
+            moveList.PushMove(eCubeMove::Left);
+         }
+         else 
+         {
+            moveList.PushMove(eCubeMove::YPrime);
+            moveList.PushMove(eCubeMove::Right);
+            moveList.PushMove(eCubeMove::UpPrime);
+            moveList.PushMove(eCubeMove::RightPrime);
+            moveList.PushMove(eCubeMove::Y);
+         }
+      }
+      else if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Back, eFaceEdgePos::LeftEdge, color1, color2, isInverted))
+      {
+         if (isCornerInBottomRight)
+         {
+            // Position the edge in the front-top
+            moveList.PushMove(eCubeMove::RightPrime);
+            moveList.PushMove(eCubeMove::Up);
+            moveList.PushMove(eCubeMove::Right);
+         }
+         else 
+         {
+            // Position the edge in the back-top
+            moveList.PushMove(eCubeMove::RightPrime);
+            moveList.PushMove(eCubeMove::UpPrime);
+            moveList.PushMove(eCubeMove::Right);
+         }
+      }
+      else if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Back, eFaceEdgePos::RightEdge, color1, color2, isInverted))
+      {
+         if (isCornerInBottomRight)
+         {
+            moveList.PushMove(eCubeMove::Left);
+            moveList.PushMove(eCubeMove::UpPrime);
+            moveList.PushMove(eCubeMove::LeftPrime);
+         }
+         else
+         {
+            moveList.PushMove(eCubeMove::Left);
+            moveList.PushMove(eCubeMove::UpPrime);
+            moveList.PushMove(eCubeMove::LeftPrime);
+            moveList.PushMove(eCubeMove::Up);
+         }
+      }
+
+      // If the corner is at the bottom, position the edge over it's respective side.
+      if (isCornerInBottomRight)
+      {
+         if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::LeftEdge, color1, color2, isInverted))
+         {
+            if (isInverted)
+            {
+               moveList.PushMove(eCubeMove::UpPrime);
+            }
+            else 
+            {
+               moveList.PushMove(eCubeMove::Up2);
+            }
+         }
+         else if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::TopEdge, color1, color2, isInverted))
+         {
+            if (isInverted)
+            {
+               moveList.PushMove(eCubeMove::Up2);
+            }
+            else 
+            {
+               moveList.PushMove(eCubeMove::Up);
+            }
+         }
+         else if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::RightEdge, color1, color2, isInverted))
+         {
+            if (isInverted)
+            {
+               // Position the same color over the front face instead.
+               moveList.PushMove(eCubeMove::Up);
+            }
+            else 
+            {
+               // Nothing to do, it's already positioned correctly.
+            }
+         }
+         else if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::BottomEdge, color1, color2, isInverted))
+         {
+            if (isInverted)
+            {
+               // Nothing to do, it's already positioned correctly.
+            }
+            else 
+            {
+               // Position the same color over the right face instead.
+               moveList.PushMove(eCubeMove::UpPrime);
+            }
+         }
+      }
+
+      // Ensure the corner hasn't moved and that the edge is positioned at the top.
+      assert(CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, eFaceCornerPos::TopRight, color1, color2, BottomColor) ||
+             CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, eFaceCornerPos::BottomRight, color1, color2, BottomColor));
+
+      assert(
+         CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::TopEdge, color1, color2, isInverted) ||
+         CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::LeftEdge, color1, color2, isInverted) ||
+         CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::RightEdge, color1, color2, isInverted) ||
+         CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, eFaceEdgePos::BottomEdge, color1, color2, isInverted) ||
+
+             // It can also be in the front right and be valid.
+         CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Front, eFaceEdgePos::RightEdge, color1, color2, isInverted)
+      );
+   }
+
+   struct tF2lCase
+   {
+      eCubeFace CornerFace;
+      eFaceCornerPos CornerPos;
+      eCubeColor CornerColor;
+
+      eCubeFace EdgeFace;
+      eFaceEdgePos EdgePos;
+      eCubeColor EdgeColor;
+
+      eCubeColor FrontColor;
+      eCubeColor RightColor;
+   };
+
+   static bool SolveF2lBasicInserts(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::TopRight || f2lCase.EdgeFace != eCubeFace::Top)
+      {
+         // Cannot basic insert if it's not at the top.
+         return false;
+      }
+
+      // If the edge and corner are directly paired and oriented correctly.
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertRightPair());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertFrontPair());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertSoloLeftEdge());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lBasicInsertSoloTopEdge());
+         return true;
+      }
+
+      return false;
+   }
+
+   static bool SolveF2lCase1(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::TopRight || f2lCase.EdgeFace != eCubeFace::Top)
+      {
+         // This case requires the corner to be at the top.
+         return false;
+      }
+
+      // If the edge and corner are directly paired and oriented correctly.
+      if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_1());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_2());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_3());
+         return true;
+      }
+
+      // Inverted edge-corner pair
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_4());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_5());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase1_6());
+         return true;
+      }
+
+      return false;
+   }
+
+   static bool SolveF2lCase2(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::TopRight || f2lCase.EdgeFace != eCubeFace::Top)
+      {
+         // This case requires the corner to be at the top.
+         return false;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_1());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_2());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_3());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase2_4());
+         return true;
+      }
+
+      return false;
+   }
+
+   static bool SolveF2lCase3(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::TopRight || f2lCase.EdgeFace != eCubeFace::Top)
+      {
+         // This case requires the corner to be at the top.
+         return false;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_1());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_2());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::LeftEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_3());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::TopEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCase3_4());
+         return true;
+      }
+
+      return false;
+   }
+
+   static bool SolveF2lCaseIncorrectlyConnectedPieces(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::TopRight || f2lCase.EdgeFace != eCubeFace::Top)
+      {
+         // This case requires the corner to be at the top.
+         return false;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces1());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces2());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces3());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces4());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces5());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseIncorrectlyConnectedPieces6());
+         return true;
+      }
+
+      return false;
+   }
+
+   static bool SolveF2lCaseCornerInPlaceEdgeInUFace(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::BottomRight || f2lCase.EdgeFace != eCubeFace::Top)
+      {
+         // This case requires the corner to be in the bottom and the edge to be somewhere in the top.
+         return false;
+      }
+
+      // Since we know the corner is on the bottom, and the edge is on top, it is required that the edge is in the bottom or right position.
+      assert(f2lCase.EdgePos == eFaceEdgePos::BottomEdge || f2lCase.EdgePos == eFaceEdgePos::RightEdge);
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU1());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU2());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU3());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU4());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::BottomEdge && f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU5());
+         return true;
+      }
+
+      if (f2lCase.EdgePos == eFaceEdgePos::RightEdge && f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseCornerInPlaceEdgeInU6());
+         return true;
+      }
+
+      return false;
+   }
+
+   static bool SolveF2lCaseEdgeInPlaceCornerInUFace(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::TopRight || 
+         f2lCase.EdgeFace != eCubeFace::Front || f2lCase.EdgePos != eFaceEdgePos::RightEdge)
+      {
+         // This case requires the edge is positioned in the middle right with the corner just above it.
+         return false;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU1());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU2());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU3());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU4());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
+         return true;
+      }
+
+      return false;
+   }
+
+   static bool SolveF2lCaseEdgeAndCornerInPlace(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      if (f2lCase.CornerFace != eCubeFace::Front || f2lCase.CornerPos != eFaceCornerPos::BottomRight || 
+         f2lCase.EdgeFace != eCubeFace::Front || f2lCase.EdgePos != eFaceEdgePos::RightEdge)
+      {
+         // This case requires the edge is positioned in the middle right with the corner just above it.
+         return false;
+      }
+
+      // Unused solved case.
+      if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU1());
+         assert(false && "F2l case should not be solved yet, but it is");
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.FrontColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU2());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU3());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.FrontColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU4());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == BottomColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU5());
+         return true;
+      }
+
+      if (f2lCase.EdgeColor == f2lCase.RightColor && f2lCase.CornerColor == f2lCase.RightColor)
+      {
+         moveList.PushMoves(FirstLayerAlgorithms::SolveF2lCaseEdgeInPlaceCornerInU6());
+         return true;
+      }
+
+      return false;
+   }
+
+   /**
+    * @brief      Solves the F2l case assuming the corner is positioned on the right front
+    * and the edge is either in the front right, or top.
+    *
+    * @param      cube      The cube
+    * @param      moveList  The move list
+    */
+   static void SolveF2lCase(Cube& cube, tF2lCase& f2lCase, CubeMoveList& moveList)
+   {
+      // Basic inserts
+      if (SolveF2lBasicInserts(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      if (SolveF2lCase1(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      if (SolveF2lCase2(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      if (SolveF2lCase3(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      if (SolveF2lCaseIncorrectlyConnectedPieces(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      if (SolveF2lCaseCornerInPlaceEdgeInUFace(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      if (SolveF2lCaseEdgeInPlaceCornerInUFace(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      if (SolveF2lCaseEdgeAndCornerInPlace(cube, f2lCase, moveList))
+      {
+         return;
+      }
+
+      assert(false && "Checked every case, but couldn't solve f2l pair");
+   }
+
+   /**
+    * @return      Returns a tuple representing the f2l case.
+    */
+   static void FindF2lCase(Cube& cube, tF2lCase& f2lCase)
+   {
+      eCubeColor color1 = cube.ColorOfFace(eCubeFace::Front);
+      eCubeColor color2 = cube.ColorOfFace(eCubeFace::Right);
+
+      f2lCase.FrontColor = color1;
+      f2lCase.RightColor = color2;
+
+      // The corner can be in one of 2 places.
+      if (CubeSolveUtils::IsCornerInPosition(cube, eCubeFace::Front, eFaceCornerPos::TopRight, color1, color2, BottomColor))
+      {
+         f2lCase.CornerFace = eCubeFace::Front;
+         f2lCase.CornerPos = eFaceCornerPos::TopRight;
+      }
+      else 
+      {
+         f2lCase.CornerFace = eCubeFace::Front;
+         f2lCase.CornerPos = eFaceCornerPos::BottomRight;
+      }
+
+      // The edge can be somewhere on the top, or in the front middle layer.
+      bool isInverted;
+
+      // Default values in case it's not found in the top.
+      f2lCase.EdgeFace = eCubeFace::Front;
+      f2lCase.EdgePos = eFaceEdgePos::RightEdge;
+
+      for (int i = 0; i < 4; i++)
+      {
+         eFaceEdgePos thisEdge = static_cast<eFaceEdgePos>(i);
+         if (CubeSolveUtils::IsEdgeInPosition(cube, eCubeFace::Top, thisEdge, color1, color2, isInverted))
+         {
+            f2lCase.EdgeFace = eCubeFace::Top;
+            f2lCase.EdgePos = thisEdge;
+            break;
+         }
+      }
+
+      f2lCase.CornerColor = CubeSolveUtils::GetCornerColor(cube, f2lCase.CornerFace, f2lCase.CornerPos);
+      f2lCase.EdgeColor = CubeSolveUtils::GetEdgeColor(cube, f2lCase.EdgeFace, f2lCase.EdgePos);
+
+      // Ensure we actually found it for the sake of correctness.
+      assert(CubeSolveUtils::IsCornerInPosition(cube, f2lCase.CornerFace, f2lCase.CornerPos, color1, color2, BottomColor));
+      assert(CubeSolveUtils::IsEdgeInPosition(cube, f2lCase.EdgeFace, f2lCase.EdgePos, color1, color2, isInverted));
+   }
+
+   /**
+    * @return      Returns true if something had to be done to solve f2l assuming the given face
     * is at the right.
-    *
-    * @param      cube       The cube
-    * @param[in]  rightFace  The right face
-    *
-    * @return     { description_of_the_return_value }
     */
    static bool SolveFirstTwoLayers(Cube& cube, eCubeFace rightFace, CubeMoveList& moveList)
    {
       RotateSideFaceToRight(cube, rightFace, moveList);
 
-      return false;
+      if (IsF2lPairSolved(cube, eCubeFace::Front, eCubeFace::Right))
+      {
+         moveList.RejectPendingMoves();
+         return false;
+      }
+
+      // First, position the corner to the right side of the cube, either the top right, or bottom right.
+      PositionF2lCornerInRightTopOrBottom(cube, moveList);
+      PositionF2lEdgeAtTopOrMiddleRight(cube, moveList);
+
+      // Now find the position of the edge and corner, then solve the case
+      tF2lCase f2lCase;
+      FindF2lCase(cube, f2lCase);
+      SolveF2lCase(cube, f2lCase, moveList);
+
+      moveList.AcceptPendingMoves();
+      return true;
    }
 
    static bool SolveFirstTwoLayers(Cube& cube, std::ostream& outputStream, bool addSeparators)
    {
       CubeMoveList moveList(cube);
 
-      // TODO Ensure F2L solved
+      bool neededSolve = true;
+      while (neededSolve)
+      {
+         neededSolve = false;
+         if (SolveFirstTwoLayers(cube, eCubeFace::Right, moveList))
+         {
+            neededSolve = true;
+            continue;
+         }
+
+         if (SolveFirstTwoLayers(cube, eCubeFace::Front, moveList))
+         {
+            neededSolve = true;
+            continue;
+         }
+
+         if (SolveFirstTwoLayers(cube, eCubeFace::Back, moveList))
+         {
+            neededSolve = true;
+            continue;
+         }
+
+         if (SolveFirstTwoLayers(cube, eCubeFace::Left, moveList))
+         {
+            neededSolve = true;
+            continue;
+         }
+      };
 
       if (moveList.GetNumMoves() > 0)
       {
@@ -1094,6 +1860,7 @@ namespace cube
          return true;
       }
 
+      EnsureF2lSolved(cube);
       outputStream << "F2L: Already Solved";
       return false;
    }

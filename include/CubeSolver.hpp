@@ -122,6 +122,7 @@ public:
       std::vector<eCubeMove> reverseMoves;
       Cube::ReverseMoves(mPendingMoves, reverseMoves);
       mCube.ExecuteMoves(reverseMoves.data(), reverseMoves.size());
+      mPendingMoves.clear();
    }
 
    /**
@@ -295,6 +296,35 @@ public:
       default:
          assert(false);
       }
+   }
+
+   /**
+    * @return     True if corner colors are in position, False otherwise.
+    */
+   static bool IsCornerInPosition(Cube& cube, eCubeFace face, eFaceCornerPos cornerPos, eCubeColor color1,
+      eCubeColor color2, eCubeColor color3)
+   {
+      tCornerDescriptor cornerDescriptor = GetCornerDescriptor(face, cornerPos);
+      return IsCornerInPosition(cube, cornerDescriptor, color1, color2, color3);
+   }
+
+   /**
+    * @return     True if corner colors are in position, False otherwise.
+    */
+   static bool IsCornerInPosition(Cube& cube, tCornerDescriptor& cornerDescriptor, 
+      eCubeColor color1, eCubeColor color2, eCubeColor color3)
+   {
+      eCubeColor yColor, xColor, zColor;
+      GetCornerColors(cube, cornerDescriptor, yColor, xColor, zColor);
+
+      // If any permeation of color1, color2 and color3 match the actual colors, the corner is in 
+      // the position.
+      return (yColor == color1 && xColor == color2 && zColor == color3) ||
+             (yColor == color2 && xColor == color1 && zColor == color3) ||
+             (yColor == color3 && xColor == color1 && zColor == color2) ||
+             (yColor == color1 && xColor == color3 && zColor == color2) ||
+             (yColor == color2 && xColor == color3 && zColor == color1) ||
+             (yColor == color3 && xColor == color2 && zColor == color1);
    }
 };
 

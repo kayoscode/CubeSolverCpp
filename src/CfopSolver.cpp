@@ -14,7 +14,7 @@
 
 namespace cube
 {
-   constexpr eCubeColor BottomColor = eCubeColor::Red;
+   constexpr eCubeColor BottomColor = Cube::DefaultColorOfFace(eCubeFace::Bottom);
 
    static auto GenerateMoves(const std::string& moveNotation)
    {
@@ -1824,6 +1824,7 @@ namespace cube
       CubeMoveList moveList(cube);
 
       bool neededSolve = true;
+      int count = 0;
       while (neededSolve)
       {
          neededSolve = false;
@@ -1850,7 +1851,14 @@ namespace cube
             neededSolve = true;
             continue;
          }
+
+         if (neededSolve)
+         {
+            count++;
+         }
       };
+
+      assert(count <= 4);
 
       if (moveList.GetNumMoves() > 0)
       {

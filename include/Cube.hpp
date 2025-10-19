@@ -2,7 +2,8 @@
 
 #include <array>
 #include <cassert>
-#include <cerrno>
+#include <ostream>
+#include <random>
 #include <vector>
 
 namespace cube
@@ -104,11 +105,9 @@ enum class eCubeMove
 };
 
 using SingleCubeFace = std::array<eCubeColor, CubeSize * CubeSize>;
-using CubeFaceData =
-   std::array<SingleCubeFace, static_cast<int>(eCubeFace::NumFaces)>;
+using CubeFaceData = std::array<SingleCubeFace, static_cast<int>(eCubeFace::NumFaces)>;
 
-template <typename T>
-[[nodiscard]] constexpr int EnumToInt(T token)
+template <typename T> [[nodiscard]] constexpr int EnumToInt(T token)
 {
    return static_cast<int>(token);
 }
@@ -154,7 +153,7 @@ public:
     * @param      move      The move
     * @param[in]  numMoves  The number moves
     */
-   void ExecuteMoves(eCubeMove* move, int numMoves);
+   void ExecuteMoves(eCubeMove* move, size_t numMoves);
 
    /**
     * @brief      Solves the cube using the CFOP method.
@@ -202,7 +201,7 @@ public:
     *
     * @return     The cube face.
     */
-   [[nodiscard]] constexpr eCubeFace DefaultFaceOfColor(eCubeColor color)
+   [[nodiscard]] static constexpr eCubeFace DefaultFaceOfColor(eCubeColor color)
    {
       return static_cast<eCubeFace>(color);
    }
@@ -215,7 +214,7 @@ public:
     *
     * @return     The e cube color.
     */
-   [[nodiscard]] constexpr eCubeColor DefaultColorOfFace(eCubeFace face)
+   [[nodiscard]] static constexpr eCubeColor DefaultColorOfFace(eCubeFace face)
    {
       return static_cast<eCubeColor>(face);
    }
@@ -268,6 +267,15 @@ public:
    void PrintFace(eCubeFace face, std::ostream& outputStream, bool useColor = true);
 
    /**
+    * @brief      Converts the list of moves to a human readable string.
+    *
+    * @param      outputStream  The stream to write data to
+    * @param      moves         The moves
+    */
+   static void SerializeMoveList(
+      std::ostream& outputStream, eCubeMove* moves, size_t numMoves, bool includeSeparators = false);
+
+   /**
     * @brief      Creates a list of moves given a string of move notation.
     *
     * @param[in]  moveNotation  The move notation
@@ -276,12 +284,49 @@ public:
    static void ParseMoveNotation(const std::string& moveNotation, std::vector<eCubeMove>& moves);
 
    /**
-    * @brief      Takes in a list of moves and produces the reverse of those moves. 
+    * @brief      Takes in a list of moves and produces the reverse of those moves.
     *
     * @param[in]  moves         The moves
     * @param      reverseMoves  The reverse moves
     */
-   static void ReverseMoves(const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves);
+   static void ReverseMoves(
+      const std::vector<eCubeMove>& moves, std::vector<eCubeMove>& reverseMoves);
+
+   /**
+    * @brief      Generates a random sequence of moves for the scramble.
+    */
+   static void GenerateScramble(std::vector<eCubeMove>& scramble, int numMoves, int seed)
+   {
+      std::random_device rd;
+      std::mt19937 engine(rd());
+      engine.seed(seed);
+
+      // Define the valid moves for a scramble
+      static std::vector<eCubeMove> validScrambleMoves
+      {
+         eCubeMove::Right, eCubeMove::Right2, eCubeMove::RightPrime,
+         eCubeMove::Left, eCubeMove::Left2, eCubeMove::LeftPrime,
+         eCubeMove::Up, eCubeMove::Up2, eCubeMove::UpPrime,
+         eCubeMove::Front, eCubeMove::Front2, eCubeMove::FrontPrime,
+      };
+
+      // Uniform integer distribution between 1 and 6 (like a die roll)
+      std::uniform_int_distribution<int> randomMovesGen(0, validScrambleMoves.size() - 1);
+
+      // Generate random sequence of moves.
+      int lastAxis = -1;
+      while (scramble.size() < numMoves)
+      {
+         int moveIdx = randomMovesGen(engine);
+         int moveAxis = moveIdx / 3;
+
+         if (moveAxis != lastAxis)
+         {
+            scramble.push_back(static_cast<eCubeMove>(validScrambleMoves[moveIdx]));
+            lastAxis = moveAxis;
+         }
+      }
+   }
 
 private:
    CubeFaceData mCube;

@@ -13,10 +13,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(SRC
         src/main.cpp
         src/Cube.cpp
+        src/CfopSolver.cpp
 )
 
 set(HEADERS
         include/Cube.hpp
+        include/CubeSolver.hpp
 )
 
 # External libs

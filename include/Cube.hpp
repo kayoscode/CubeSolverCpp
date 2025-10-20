@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstdint>
 #include <ostream>
 #include <random>
 #include <vector>
@@ -14,7 +15,7 @@ constexpr int CubeSize = 3;
  * @brief      Defines the valid colors on a cube.
  * The colors are specified on the cube such that color==face
  */
-enum class eCubeColor
+enum class eCubeColor : uint8_t
 {
    Yellow,
    White,
@@ -104,7 +105,7 @@ enum class eCubeMove
    NumMoves
 };
 
-using SingleCubeFace = std::array<eCubeColor, CubeSize * CubeSize>;
+using SingleCubeFace = std::array<eCubeColor, 16>;
 using CubeFaceData = std::array<SingleCubeFace, static_cast<int>(eCubeFace::NumFaces)>;
 
 template <typename T> [[nodiscard]] constexpr int EnumToInt(T token)

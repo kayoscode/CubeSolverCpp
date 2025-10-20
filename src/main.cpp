@@ -13,16 +13,18 @@ int main()
 
    int seed = time(0);
 
-   Cube::GenerateScramble(moves, 30, seed);
+   Cube::GenerateScramble(moves, (int)2e9, seed);
    std::cout << "Seed: " << seed << "\n" << "Scramble: ";
-   Cube::SerializeMoveList(std::cout, moves.data(), moves.size());
+   //Cube::SerializeMoveList(std::cout, moves.data(), moves.size());
    std::cout << "\n";
 
    Cube cube;
+   Timer t;
    cube.ExecuteMoves(moves.data(), moves.size());
+   std::cout << "Executing moves took: " << t.Milliseconds() << " ms\n";
    cube.Print(std::cout);
 
-   Timer t;
+   t.Reset();
    CfopSolver solver(cube, true, true);
    solver.Solve(std::cout);
    std::cout << "Solved in: " << t.Microseconds() << " us\n";

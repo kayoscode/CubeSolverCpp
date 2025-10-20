@@ -52,7 +52,7 @@ namespace cube
       // Basic inserts
       CUBE_ALG_DEF(SolveF2lBasicInsertRightPair, "U (R U' R')");
       CUBE_ALG_DEF(SolveF2lBasicInsertFrontPair, "y' U' (R' U R)");
-      CUBE_ALG_DEF(SolveF2lBasicInsertSoloLeftEdge, "Y' (R' U' R)");
+      CUBE_ALG_DEF(SolveF2lBasicInsertSoloLeftEdge, "y' (R' U' R)");
       CUBE_ALG_DEF(SolveF2lBasicInsertSoloTopEdge, "(R U R')");
 
       // F2l Case1_x

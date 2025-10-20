@@ -19,6 +19,7 @@ set(SRC
 set(HEADERS
         include/Cube.hpp
         include/CubeSolver.hpp
+        include/Timer.hpp
 )
 
 # External libs

@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cassert>
-#include <cstdint>
 #include <ostream>
 #include <random>
 #include <vector>
@@ -15,7 +14,7 @@ constexpr int CubeSize = 3;
  * @brief      Defines the valid colors on a cube.
  * The colors are specified on the cube such that color==face
  */
-enum class eCubeColor : uint8_t
+enum class eCubeColor
 {
    Yellow,
    White,

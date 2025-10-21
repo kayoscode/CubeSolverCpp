@@ -1,7 +1,5 @@
 #include "Cube.hpp"
 
-#include <emmintrin.h>
-#include <immintrin.h>
 #include <array>
 #include <iostream>
 #include <map>
@@ -34,45 +32,71 @@ enum Coord
 static void RotateFaceClockwise(CubeFaceData& faceData, eCubeFace face)
 {
    SingleCubeFace& faceToRotate = faceData[EnumToInt(face)];
-   __m128i faceContents = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&faceToRotate));
 
-    const __m128i mask = _mm_setr_epi8(
-        6, 3, 0, 7, 4, 1, 8, 5, 2, 9, 10, 11, 12, 13, 14, 15
-    );
+   eCubeColor topLeftCorner = faceToRotate[TopLeftCorner];
+   eCubeColor topEdge = faceToRotate[TopEdge];
+   eCubeColor topRightCorner = faceToRotate[TopRightCorner];
+   eCubeColor leftEdge = faceToRotate[LeftEdge];
+   eCubeColor rightEdge = faceToRotate[RightEdge];
+   eCubeColor bottomLeftCorner = faceToRotate[BottomLeftCorner];
+   eCubeColor bottomEdge = faceToRotate[BottomEdge];
+   eCubeColor bottomRightCorner = faceToRotate[BottomRightCorner];
 
-    faceContents = _mm_shuffle_epi8(faceContents, mask);
-   _mm_storeu_si128(reinterpret_cast<__m128i*>(&faceToRotate), faceContents);
+   faceToRotate[TopLeftCorner] = bottomLeftCorner;
+   faceToRotate[TopEdge] = leftEdge;
+   faceToRotate[TopRightCorner] = topLeftCorner;
+   faceToRotate[LeftEdge] = bottomEdge;
+   faceToRotate[RightEdge] = topEdge;
+   faceToRotate[BottomLeftCorner] = bottomRightCorner;
+   faceToRotate[BottomEdge] = rightEdge;
+   faceToRotate[BottomRightCorner] = topRightCorner;
 }
 
 static void RotateFaceCounterClockwise(CubeFaceData& faceData, eCubeFace face)
 {
+
    SingleCubeFace& faceToRotate = faceData[EnumToInt(face)];
-   __m128i faceContents = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&faceToRotate));
 
-    const __m128i mask = _mm_setr_epi8(
-        2, 5, 8, 1, 4, 7, 0, 3, 6, 9, 10, 11, 12, 13, 14, 15
-    );
+   eCubeColor topLeftCorner = faceToRotate[TopLeftCorner];
+   eCubeColor topEdge = faceToRotate[TopEdge];
+   eCubeColor topRightCorner = faceToRotate[TopRightCorner];
+   eCubeColor leftEdge = faceToRotate[LeftEdge];
+   eCubeColor rightEdge = faceToRotate[RightEdge];
+   eCubeColor bottomLeftCorner = faceToRotate[BottomLeftCorner];
+   eCubeColor bottomEdge = faceToRotate[BottomEdge];
+   eCubeColor bottomRightCorner = faceToRotate[BottomRightCorner];
 
-    faceContents = _mm_shuffle_epi8(faceContents, mask);
-   _mm_storeu_si128(reinterpret_cast<__m128i*>(&faceToRotate), faceContents);
+   faceToRotate[TopLeftCorner] = topRightCorner;
+   faceToRotate[TopEdge] = rightEdge;
+   faceToRotate[TopRightCorner] = bottomRightCorner;
+   faceToRotate[LeftEdge] = topEdge;
+   faceToRotate[RightEdge] = bottomEdge;
+   faceToRotate[BottomLeftCorner] = topLeftCorner;
+   faceToRotate[BottomEdge] = leftEdge;
+   faceToRotate[BottomRightCorner] = bottomLeftCorner;
 }
 
 static void RotateFaceTwice(CubeFaceData& faceData, eCubeFace face)
 {
-    SingleCubeFace& faceToRotate = faceData[EnumToInt(face)];
+   SingleCubeFace& faceToRotate = faceData[EnumToInt(face)];
 
-    // Load the 16 bytes of the face into an __m128i
-    __m128i faceContents = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&faceToRotate));
+   eCubeColor topLeftCorner = faceToRotate[TopLeftCorner];
+   eCubeColor topEdge = faceToRotate[TopEdge];
+   eCubeColor topRightCorner = faceToRotate[TopRightCorner];
+   eCubeColor leftEdge = faceToRotate[LeftEdge];
+   eCubeColor rightEdge = faceToRotate[RightEdge];
+   eCubeColor bottomLeftCorner = faceToRotate[BottomLeftCorner];
+   eCubeColor bottomEdge = faceToRotate[BottomEdge];
+   eCubeColor bottomRightCorner = faceToRotate[BottomRightCorner];
 
-    const __m128i mask = _mm_setr_epi8(
-        8, 7, 6, 5, 4, 3, 2, 1,
-        0, 9, 10, 11, 12, 13, 14, 15
-    );
-
-    faceContents = _mm_shuffle_epi8(faceContents, mask);
-
-    // Store the rotated face back
-    _mm_storeu_si128(reinterpret_cast<__m128i*>(&faceToRotate), faceContents);
+   faceToRotate[TopLeftCorner] = bottomRightCorner;
+   faceToRotate[TopEdge] = bottomEdge;
+   faceToRotate[TopRightCorner] = bottomLeftCorner;
+   faceToRotate[LeftEdge] = rightEdge;
+   faceToRotate[RightEdge] = leftEdge;
+   faceToRotate[BottomLeftCorner] = topRightCorner;
+   faceToRotate[BottomEdge] = topEdge;
+   faceToRotate[BottomRightCorner] = topLeftCorner;
 }
 
 template <int TLayer>
